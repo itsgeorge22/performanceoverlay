@@ -1,0 +1,7 @@
+{
+    "key.category.performanceoverlay.category": "Performance Overlay",
+    "key.performanceoverlay.toggle": "Toggle Performance Overlay",
+    "key.performanceoverlay.cycle_layout": "Cycle Overlay Layout",
+    "key.performanceoverlay.reset": "Reset Performance Stats",
+    "key.performanceoverlay.benchmark": "Toggle Benchmark Logging"
+}

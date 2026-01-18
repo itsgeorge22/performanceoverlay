@@ -1,0 +1,31 @@
+{
+    "schemaVersion": 1,
+    "id": "performanceoverlay",
+    "version": "${version}",
+    "name": "Performance Overlay",
+    "description": "Lightweight client-side overlay for FPS metrics and benchmarking.",
+    "authors": [
+        "itsgeorge"
+    ],
+    "license": "MIT",
+    "icon": "assets/performanceoverlay/icon.png",
+    "environment": "client",
+    "entrypoints": {
+        "client": [
+            "com.itsgeorge.performanceoverlay.PerformanceOverlayClient"
+        ],
+        "modmenu": [
+            "com.itsgeorge.performanceoverlay.client.PerformanceOverlayModMenu"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.18.4",
+        "minecraft": "1.21.11",
+        "java": ">=21",
+        "fabric-api": "*",
+        "cloth-config": "*"
+    },
+    "recommends": {
+        "modmenu": "*"
+    }
+}
