@@ -4,10 +4,17 @@ plugins {
 }
 
 group = project.maven_group
-version = "${project.mod_version}+mc${project.minecraft_version}-fabric"
+version = project.mod_version
+
+def mcMajorMinor = "1.21.x"
+def jarBase = "performanceoverlay-${project.mod_version}+mc${mcMajorMinor}-fabric"
 
 base {
-	archivesName = project.archives_base_name
+    archivesName = jarBase
+}
+
+tasks.named("remapJar").configure {
+    archiveFileName = "${jarBase}.jar"
 }
 
 repositories {
@@ -74,6 +81,15 @@ java {
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
 }
+
+tasks.matching { it.name == "sourcesJar" }.configureEach {
+    archiveFileName = "${jarBase}-sources.jar"
+}
+
+tasks.matching { it.name == "remapSourcesJar" }.configureEach {
+    archiveFileName = "${jarBase}-sources.jar"
+}
+
 
 jar {
 	inputs.property "archivesName", project.base.archivesName
