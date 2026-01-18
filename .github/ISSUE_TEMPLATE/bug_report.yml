@@ -1,0 +1,95 @@
+name: Bug report
+description: Report a bug or crash.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before reporting:
+        - Confirm you're on **Minecraft 1.21.x (Fabric)**
+        - Confirm **Fabric API** and **Cloth Config** are installed
+        - Try reproducing with only Performance Overlay + dependencies
+
+  - type: input
+    id: mc
+    attributes:
+      label: Minecraft version
+      placeholder: "1.21.11"
+    validations:
+      required: true
+
+  - type: input
+    id: loader
+    attributes:
+      label: Loader version (Fabric Loader)
+      placeholder: "0.18.4"
+    validations:
+      required: true
+
+  - type: input
+    id: mod_version
+    attributes:
+      label: Performance Overlay version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mods
+    attributes:
+      label: Mod list
+      description: Paste your mod list. If huge, paste only performance-related mods.
+      placeholder: "Fabric API, Cloth Config, Mod Menu, Sodium, ..."
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Be specific. “It lags” is not a repro.
+      placeholder: |
+        1. Launch Minecraft
+        2. Join world
+        3. Press F7
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: "Overlay should toggle on/off without errors."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      placeholder: "Overlay does not appear / crashes / wrong values..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / crash report
+      description: Paste relevant parts. Use a link if it’s long.
+      placeholder: "latest.log or crash report..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I am on Minecraft 1.21.x (Fabric)
+          required: true
+        - label: I have Fabric API installed
+          required: true
+        - label: I have Cloth Config installed
+          required: true
+        - label: I can reproduce this reliably
+          required: false

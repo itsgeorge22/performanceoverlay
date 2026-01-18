@@ -1,0 +1,19 @@
+name: Unsupported version / setup
+description: For wrong Minecraft version, missing dependencies, or non-Fabric loaders.
+title: "[Unsupported] "
+labels: ["invalid"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Performance Overlay supports:
+        - **Minecraft: 1.21.x**
+        - **Loader: Fabric**
+        - Requires: **Fabric API**, **Cloth Config**
+
+        If you're not on that setup, this issue will be closed.
+
+  - type: input
+    id: mc
+    attributes:
+      label: Minecraft version

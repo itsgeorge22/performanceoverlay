@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Modrinth page
+    url: https://modrinth.com/mod/performance-overlay
+    about: Check description, dependencies, and supported versions first.
+  - name: Discussions / Questions
+    url: https://github.com/itsgeorge22/performanceoverlay/discussions
+    about: Use this for questions, ideas, and “how do I…”
