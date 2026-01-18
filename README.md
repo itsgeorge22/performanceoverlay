@@ -109,6 +109,7 @@ If you re-upload this mod (modified or unmodified), please:
 - Modrinth: https://modrinth.com/mod/performance-overlay
 - Curseforge: https://www.curseforge.com/minecraft/mc-mods/performance-overlay
 - Source code: https://github.com/itsgeorge22/performanceoverlay
+- Issues: https://github.com/itsgeorge22/performanceoverlay/issues
 
 ---
 
