@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Made benchmark start, measurement, and stopping independent of whether the overlay is visible.
 - Finalized active benchmarks during normal game shutdown and recorded why each run ended.
 - Added immediate, user-friendly notifications for benchmark CSV write and finalization failures.
 - Prevented benchmarks started within the same second from overwriting existing CSV files.

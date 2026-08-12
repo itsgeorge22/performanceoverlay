@@ -22,6 +22,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Prevent benchmark filename collisions from overwriting existing CSV files.
 - [x] Report benchmark CSV write and finalization failures immediately and clear stale progress state.
 - [x] Finalize active benchmark CSV files during normal Minecraft shutdown.
+- [x] Make benchmark start, measurement, and stopping independent of overlay visibility.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.

@@ -1322,7 +1322,6 @@ public final class FpsTracker {
     public enum BenchmarkEndReason {
         MANUAL,
         AUTO_DURATION,
-        OVERLAY_DISABLED,
         GAME_SHUTDOWN
     }
 

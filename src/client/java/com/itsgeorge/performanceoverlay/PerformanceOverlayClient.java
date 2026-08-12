@@ -157,15 +157,6 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             while (toggleKey.consumeClick()) {
                 config.enabled = !config.enabled;
 
-                if (!config.enabled && tracker.isBenchmarkActive()) {
-                    FpsTracker.BenchmarkStatus s = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.OVERLAY_DISABLED);
-                    benchmarkAutoStopAtNs = 0;
-                    clearBenchmarkProgressState();
-                    if (s.error()) {
-                        showBenchmarkError(client, s);
-                    }
-                }
-
                 tracker.setConfig(config, false);
                 ConfigIO.save(config);
 
@@ -178,11 +169,6 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             }
 
             while (benchmarkKey.consumeClick()) {
-                if (!config.enabled && !tracker.isBenchmarkActive()) {
-                    showActionbarPlain(client, Component.literal("Enable overlay first").withStyle(ChatFormatting.WHITE));
-                    continue;
-                }
-
                 FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
                 if (s.error()) {
                     showBenchmarkError(client, s);

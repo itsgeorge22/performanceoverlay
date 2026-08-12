@@ -56,7 +56,7 @@ Fabric HUD callback
     -> render Snapshot only if overlay is enabled
 ```
 
-Normal sampling is coupled to the enabled overlay. An active benchmark continues sampling through the HUD callback if the overlay is disabled through the settings screen.
+Normal sampling is coupled to the enabled overlay. An active benchmark continues sampling through the HUD callback if the overlay is disabled through F7 or the settings screen.
 
 All current frame measurement, rolling metric work, benchmark per-frame work, snapshot generation, and overlay rendering are executed synchronously on the client/render path used by the HUD callback.
 
@@ -89,9 +89,9 @@ Layouts cycle:
 ONE_LINE -> THREE_LINES -> COLUMN -> ONE_LINE
 ```
 
-Starting a benchmark through F10 is rejected when the overlay is disabled. F10 can still stop an active benchmark if the overlay was disabled through the settings screen during the run.
+F10 starts or stops benchmarks regardless of whether the overlay is visible.
 
-When F7 disables the overlay during an active benchmark, the tracker is told to stop the benchmark and local auto-stop/progress state is cleared.
+Disabling the overlay through F7 or the settings screen hides only the display during an active benchmark. Sampling, progress, F10 manual stop, and automatic stop continue normally.
 
 ## `FpsTracker`
 
@@ -142,9 +142,9 @@ Benchmark CSV formatting and `BufferedWriter.write()` are currently performed in
 
 The writer is flushed every 120 logged frames and closed on normal stop.
 
-If a per-frame write fails, the tracker closes the writer, stops the run, and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, auto-stop, and F7 finalization failures use the same visible error presentation.
+If a per-frame write fails, the tracker closes the writer, stops the run, and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
 
-The Fabric client-stopping event finalizes an active benchmark during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, overlay disable, or game shutdown. Forced process termination, power loss, and crashes that bypass the lifecycle event can still leave a partial file.
+The Fabric client-stopping event finalizes an active benchmark during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, or game shutdown. Forced process termination, power loss, and crashes that bypass the lifecycle event can still leave a partial file.
 
 ## Benchmark files
 
