@@ -1127,41 +1127,35 @@ public final class FpsTracker {
         return sum / k;
     }
 
-    private static long selectNth(long[] a, int left, int right, int n) {
+    static long selectNth(long[] a, int left, int right, int n) {
         while (true) {
             if (left == right) {
                 return a[left];
             }
 
-            int pivotIndex = (left + right) >>> 1;
-            pivotIndex = partition(a, left, right, pivotIndex);
+            long pivotValue = a[(left + right) >>> 1];
+            int lower = left;
+            int current = left;
+            int higher = right;
 
-            if (n == pivotIndex) {
-                return a[n];
+            while (current <= higher) {
+                if (a[current] < pivotValue) {
+                    swap(a, lower++, current++);
+                } else if (a[current] > pivotValue) {
+                    swap(a, current, higher--);
+                } else {
+                    current++;
+                }
             }
-            if (n < pivotIndex) {
-                right = pivotIndex - 1;
+
+            if (n < lower) {
+                right = lower - 1;
+            } else if (n > higher) {
+                left = higher + 1;
             } else {
-                left = pivotIndex + 1;
+                return pivotValue;
             }
         }
-    }
-
-    private static int partition(long[] a, int left, int right, int pivotIndex) {
-        long pivotValue = a[pivotIndex];
-        swap(a, pivotIndex, right);
-
-        int storeIndex = left;
-
-        for (int i = left; i < right; i++) {
-            if (a[i] < pivotValue) {
-                swap(a, storeIndex, i);
-                storeIndex++;
-            }
-        }
-
-        swap(a, right, storeIndex);
-        return storeIndex;
     }
 
     private static void swap(long[] a, int i, int j) {

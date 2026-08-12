@@ -28,6 +28,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Correct overlay-disabled and GC metric tooltips.
 - [x] Make automatic-stop progress reach 100% and prevent F10 from immediately restarting the benchmark.
 - [x] Prevent cached GC deltas from being duplicated across benchmark CSV rows.
+- [x] Prevent duplicate-heavy frametime data from degrading low-percentile selection.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.

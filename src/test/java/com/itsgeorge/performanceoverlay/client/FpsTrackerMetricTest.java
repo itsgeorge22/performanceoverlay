@@ -3,6 +3,9 @@ package com.itsgeorge.performanceoverlay.client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 final class FpsTrackerMetricTest {
@@ -96,6 +99,34 @@ final class FpsTrackerMetricTest {
 
         assertEquals(1_000.0 / 28.0, low1, 0.000_001);
         assertEquals(10.0, low01, 0.000_001);
+    }
+
+    @Test
+    void selectionHandlesThousandsOfIdenticalFrametimes() {
+        long[] frames = new long[20_000];
+        Arrays.fill(frames, ns(10));
+
+        assertEquals(ns(10), FpsTracker.selectNth(frames, 0, frames.length - 1, 19_799));
+    }
+
+    @Test
+    void selectionMatchesSortedResultsForDuplicateHeavyData() {
+        Random random = new Random(22);
+
+        for (int size = 1; size <= 200; size++) {
+            long[] source = new long[size];
+            for (int i = 0; i < size; i++) {
+                source[i] = ns(5 + random.nextInt(8));
+            }
+
+            long[] sorted = source.clone();
+            Arrays.sort(sorted);
+
+            for (int index = 0; index < size; index++) {
+                long[] selected = source.clone();
+                assertEquals(sorted[index], FpsTracker.selectNth(selected, 0, size - 1, index));
+            }
+        }
     }
 
     @Test

@@ -113,7 +113,7 @@ selectedFrameNs = Nth frame duration at index
 lowFps = 1_000_000_000 / selectedFrameNs
 ```
 
-Selection uses in-place quickselect on the scratch array rather than full sorting.
+Selection uses in-place quickselect on the scratch array rather than full sorting. Its three-way partition groups values lower than, equal to, and higher than the pivot so large groups of identical frametimes are resolved in one partition pass.
 
 ### `MEAN_WORST`
 
