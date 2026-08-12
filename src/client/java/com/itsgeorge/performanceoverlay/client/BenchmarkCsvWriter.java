@@ -141,7 +141,7 @@ final class BenchmarkCsvWriter {
                         row.stutters() + "," +
                         row.stutterPercent() + "," +
                         FpsTracker.ms3(row.maxSpikeMs()) + "," +
-                        FpsTracker.ms1((double) row.gcTimeDeltaMs()) + "," +
+                        (row.gcTimeDeltaSampled() ? FpsTracker.ms1((double) row.gcTimeDeltaMs()) : "") + "," +
                         row.memUsedMb() + "," +
                         row.memMaxMb() + "\n"
         );
@@ -165,6 +165,7 @@ final class BenchmarkCsvWriter {
             int stutterPercent,
             double maxSpikeMs,
             long gcTimeDeltaMs,
+            boolean gcTimeDeltaSampled,
             long memUsedMb,
             long memMaxMb
     ) implements Command {

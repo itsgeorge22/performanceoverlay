@@ -80,9 +80,11 @@ final class BenchmarkCsvTest {
         assertEquals("20", firstRow[0]);
         assertEquals("10.000", firstRow[1]);
         assertEquals("100.0", firstRow[2]);
+        assertEquals("0.0", firstRow[10]);
         assertEquals("40", secondRow[0]);
         assertEquals("20.000", secondRow[1]);
         assertEquals("50.0", secondRow[2]);
+        assertEquals("", secondRow[10]);
 
         assertTrue(lines.contains("# SUMMARY"));
         assertTrue(lines.contains("# FramesLogged: 2"));

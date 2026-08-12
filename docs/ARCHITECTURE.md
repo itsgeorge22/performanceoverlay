@@ -16,6 +16,7 @@ src/client/java/com/itsgeorge/performanceoverlay/
 
 Important classes:
 
+- `BenchmarkCsvWriter` — bounded background queue, CSV row formatting, ordered writes, flushing, and finalization.
 - `PerformanceOverlayClient` — Fabric client entry point and runtime orchestration.
 - `FpsTracker` — frame sampling, rolling history, metric calculation, cached display snapshots, benchmark capture/export, GC sampling, and memory sampling.
 - `OverlayRenderer` — overlay measurement, anchoring, scaling, and text drawing.
@@ -169,6 +170,8 @@ If that name already exists, the tracker atomically creates a numbered variant s
 The file contains start-time metadata, per-frame CSV rows, then an end reason and summary footer on successful finalization.
 
 The start metadata records the captured duration, pause handling, low method, stutter settings, rolling windows, and metric update intervals. Those measurement settings remain fixed until the run stops, while display-only configuration remains live.
+
+The CSV writes `gc_time_delta_ms` only on frames with a fresh GC poll. Intermediate rows leave the cell blank so cached display values are not duplicated in exported data.
 
 ## Rendering
 

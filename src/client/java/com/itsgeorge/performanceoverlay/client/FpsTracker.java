@@ -437,6 +437,7 @@ public final class FpsTracker {
         pruneOld(nowNs, settings);
 
         boolean changed = false;
+        boolean gcSampledThisFrame = false;
 
         boolean needFpsForColor = config.colorThresholds && config.colorTarget == OverlayConfig.ColorTarget.FPS;
         boolean needLow1ForColor = config.colorThresholds && config.colorTarget == OverlayConfig.ColorTarget.LOW_1;
@@ -499,6 +500,7 @@ public final class FpsTracker {
         if ((benchmarkActive || config.showGc) && due(nowNs, lastGcUpdateNs, 1000)) {
             cachedGcTimeDeltaMs = readGcTimeDeltaMs();
             lastGcUpdateNs = nowNs;
+            gcSampledThisFrame = true;
             changed = true;
         }
 
@@ -534,6 +536,7 @@ public final class FpsTracker {
                                 cachedStutterPercent,
                                 cachedMaxSpikeMs,
                                 cachedGcTimeDeltaMs,
+                                gcSampledThisFrame,
                                 cachedMemUsedMb,
                                 cachedMemMaxMb
                         )

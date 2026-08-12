@@ -262,7 +262,7 @@ mem_max_mb
 
 The exported rolling metrics are calculated regardless of overlay visibility while a benchmark is active. Their cached values can repeat between configured refreshes.
 
-GC and memory are sampled before the current benchmark row is written whenever their fixed polling cadence is due. The first benchmark GC value is zero/unavailable unless collection occurs after the run's baseline is captured.
+GC and memory are sampled before the current benchmark row is written whenever their fixed polling cadence is due. `gc_time_delta_ms` contains a numeric value only on a row where a fresh GC poll occurred; rows between polls leave that cell blank rather than repeating the cached overlay value. A numeric `0.0` therefore means a poll occurred and found no accumulated GC time, while a blank means no poll occurred on that frame. This makes the column safe to sum. The first benchmark GC poll uses the run's fresh baseline and therefore excludes earlier collection activity.
 
 `frame_ms` is the authoritative per-frame measurement. The other columns are derived or periodically sampled context for that frame.
 

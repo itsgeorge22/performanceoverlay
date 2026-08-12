@@ -44,6 +44,24 @@ final class BenchmarkCsvWriterTest {
     }
 
     @Test
+    void leavesGcCellBlankWhenNoNewPollOccurred() throws Exception {
+        TrackingWriter output = new TrackingWriter();
+        BenchmarkCsvWriter writer = new BenchmarkCsvWriter(output, 4);
+
+        writer.enqueue(row(25, 16_666_667, false));
+        writer.finish(
+                FpsTracker.BenchmarkEndReason.MANUAL,
+                1,
+                1,
+                new FpsTracker.BenchmarkSummary(0, 0, 0, 0, 0, 0)
+        );
+
+        assertTrue(output.toString().startsWith(
+                "25,16.667,60.0,59.5,58.5,55.5,50.5,1,25,16.667,,512,8192\n"
+        ));
+    }
+
+    @Test
     void fullQueueFailsInsteadOfBlockingFrameCapture() throws Exception {
         BlockingWriter output = new BlockingWriter();
         BenchmarkCsvWriter writer = new BenchmarkCsvWriter(output, 1);
@@ -80,6 +98,10 @@ final class BenchmarkCsvWriterTest {
     }
 
     private static BenchmarkCsvWriter.BenchmarkRow row(long elapsedMs, long frameNs) {
+        return row(elapsedMs, frameNs, true);
+    }
+
+    private static BenchmarkCsvWriter.BenchmarkRow row(long elapsedMs, long frameNs, boolean gcSampled) {
         return new BenchmarkCsvWriter.BenchmarkRow(
                 elapsedMs,
                 frameNs,
@@ -91,6 +113,7 @@ final class BenchmarkCsvWriterTest {
                 25,
                 16.666667,
                 2,
+                gcSampled,
                 512,
                 8192
         );

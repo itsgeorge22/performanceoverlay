@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Made benchmark GC values appear only on fresh polls so the CSV column can be summed correctly.
 - Moved benchmark CSV formatting and file writing off the measured render path.
 - Made automatic benchmark progress reach 100% and prevented F10 from immediately starting another run.
 - Corrected settings tooltips for hidden-overlay benchmarking and GC time reporting.
