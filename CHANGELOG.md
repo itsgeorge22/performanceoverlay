@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Standardized configuration labels and replaced internal enum names with readable options.
 - Added validation and safe defaults for malformed, missing, or out-of-range configuration values.
 - Fixed the missing separator before Max Spike in the three-line overlay layout.
 - Clarified GC time-delta reporting and show zero when no collection time accumulated between polls.

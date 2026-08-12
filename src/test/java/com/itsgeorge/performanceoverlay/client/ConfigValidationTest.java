@@ -111,6 +111,16 @@ final class ConfigValidationTest {
         assertEquals(OverlayConfig.LowMethod.MEAN_WORST, config.lowMethod);
     }
 
+    @Test
+    void enumLabelsUseReadableSentenceCase() {
+        assertEquals("Top left", OverlayConfig.OverlayPosition.TOP_LEFT.toString());
+        assertEquals("Three lines", OverlayConfig.TextLayout.THREE_LINES.toString());
+        assertEquals("Responsive", OverlayConfig.Preset.RESPONSIVE.toString());
+        assertEquals("Freeze", OverlayConfig.PauseHandling.FREEZE.toString());
+        assertEquals("Mean worst", OverlayConfig.LowMethod.MEAN_WORST.toString());
+        assertEquals("0.1% low", OverlayConfig.ColorTarget.LOW_01.toString());
+    }
+
     private static void assertDefaultCoreValues(OverlayConfig config) {
         assertNotNull(config);
         assertEquals(1.0f, config.scale);

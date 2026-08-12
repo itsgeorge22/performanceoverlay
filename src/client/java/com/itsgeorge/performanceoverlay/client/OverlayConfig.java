@@ -111,12 +111,23 @@ public class OverlayConfig {
     }
 
     public enum OverlayPosition {
-        TOP_LEFT,
-        TOP_CENTER,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_CENTER,
-        BOTTOM_RIGHT
+        TOP_LEFT("Top left"),
+        TOP_CENTER("Top center"),
+        TOP_RIGHT("Top right"),
+        BOTTOM_LEFT("Bottom left"),
+        BOTTOM_CENTER("Bottom center"),
+        BOTTOM_RIGHT("Bottom right");
+
+        private final String label;
+
+        OverlayPosition(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 
     public enum TextLayout {
@@ -137,26 +148,70 @@ public class OverlayConfig {
     }
 
     public enum Preset {
-        DEFAULT,
-        RESPONSIVE,
-        SMOOTH,
-        CUSTOM
+        DEFAULT("Default"),
+        RESPONSIVE("Responsive"),
+        SMOOTH("Smooth"),
+        CUSTOM("Custom");
+
+        private final String label;
+
+        Preset(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 
     public enum PauseHandling {
-        RESET,
-        FREEZE,
-        TRACK
+        RESET("Reset"),
+        FREEZE("Freeze"),
+        TRACK("Track");
+
+        private final String label;
+
+        PauseHandling(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 
     public enum LowMethod {
-        MEAN_WORST,
-        PERCENTILE
+        MEAN_WORST("Mean worst"),
+        PERCENTILE("Percentile");
+
+        private final String label;
+
+        LowMethod(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 
     public enum ColorTarget {
-        FPS,
-        LOW_1,
-        LOW_01
+        FPS("FPS"),
+        LOW_1("1% low"),
+        LOW_01("0.1% low");
+
+        private final String label;
+
+        ColorTarget(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 }

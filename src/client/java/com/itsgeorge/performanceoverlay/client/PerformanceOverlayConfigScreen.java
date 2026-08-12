@@ -80,37 +80,37 @@ public final class PerformanceOverlayConfigScreen {
                 .setSaveConsumer(v -> working.showFps = v)
                 .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show Avg FPS"), working.showAvg)
+        overlay.addEntry(eb.startBooleanToggle(label("Show average FPS"), working.showAvg)
                 .setDefaultValue(defaults.showAvg)
                 .setTooltip(Component.literal("Show average FPS over the Avg window."))
                 .setSaveConsumer(v -> working.showAvg = v)
                 .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show 1% Low"), working.show1Low)
+        overlay.addEntry(eb.startBooleanToggle(label("Show 1% low"), working.show1Low)
                 .setDefaultValue(defaults.show1Low)
                 .setTooltip(Component.literal("Show 1% Low FPS (stutter indicator)."))
                 .setSaveConsumer(v -> working.show1Low = v)
                 .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show 0.1% Low"), working.show01Low)
+        overlay.addEntry(eb.startBooleanToggle(label("Show 0.1% low"), working.show01Low)
                 .setDefaultValue(defaults.show01Low)
                 .setTooltip(Component.literal("Show 0.1% Low FPS (micro-freeze indicator)."))
                 .setSaveConsumer(v -> working.show01Low = v)
                 .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show Frametime (ms)"), working.showFrametime)
+        overlay.addEntry(eb.startBooleanToggle(label("Show frametime (ms)"), working.showFrametime)
                 .setDefaultValue(defaults.showFrametime)
                 .setTooltip(Component.literal("Show frametime in milliseconds. Lower = smoother."))
                 .setSaveConsumer(v -> working.showFrametime = v)
                 .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show Stutters (count)"), working.showStutters)
+        overlay.addEntry(eb.startBooleanToggle(label("Show stutters (count)"), working.showStutters)
                 .setDefaultValue(defaults.showStutters)
                 .setTooltip(Component.literal("Count stutters in the last window (frame >= threshold ms)."))
                 .setSaveConsumer(v -> working.showStutters = v)
                 .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show Max Spike (ms)"), working.showMaxSpike)
+        overlay.addEntry(eb.startBooleanToggle(label("Show maximum spike (ms)"), working.showMaxSpike)
                 .setDefaultValue(defaults.showMaxSpike)
                 .setTooltip(Component.literal("Show max frametime spike (ms) within the stutter window."))
                 .setSaveConsumer(v -> working.showMaxSpike = v)
@@ -121,7 +121,7 @@ public final class PerformanceOverlayConfigScreen {
             .setSaveConsumer(v -> working.showGc = v)
             .build());
 
-        overlay.addEntry(eb.startBooleanToggle(label("Show Memory usage"), working.showMemory)
+        overlay.addEntry(eb.startBooleanToggle(label("Show memory usage"), working.showMemory)
             .setDefaultValue(defaults.showMemory)
             .setTooltip(Component.literal("Show used / max JVM memory (MB)."))
             .setSaveConsumer(v -> working.showMemory = v)
@@ -162,9 +162,9 @@ public final class PerformanceOverlayConfigScreen {
         layout.addEntry(eb.startEnumSelector(label("Text layout"), OverlayConfig.TextLayout.class, working.textLayout)
                 .setDefaultValue(defaults.textLayout)
                 .setTooltip(
-                        Component.literal("ONE_LINE = compact."),
-                        Component.literal("THREE_LINES = balanced."),
-                        Component.literal("COLUMN = easiest to scan.")
+                        Component.literal("One line = compact."),
+                        Component.literal("Three lines = balanced."),
+                        Component.literal("Column = easiest to scan.")
                 )
                 .setSaveConsumer(v -> working.textLayout = v)
                 .build());
@@ -173,7 +173,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setDefaultValue(defaults.lineSpacingPx)
                 .setMin(0)
                 .setMax(30)
-                .setTooltip(Component.literal("Spacing between lines in THREE_LINES and COLUMN modes."))
+                .setTooltip(Component.literal("Spacing between lines in Three lines and Column modes."))
                 .setSaveConsumer(v -> working.lineSpacingPx = clamp(v, 0, 30))
                 .build());
 
@@ -185,10 +185,10 @@ public final class PerformanceOverlayConfigScreen {
         advanced.addEntry(eb.startEnumSelector(label("Preset"), OverlayConfig.Preset.class, working.preset)
                 .setDefaultValue(defaults.preset)
                 .setTooltip(
-                        Component.literal("DEFAULT = balanced."),
-                        Component.literal("RESPONSIVE = reacts faster, more jitter."),
-                        Component.literal("SMOOTH = steadier numbers."),
-                        Component.literal("CUSTOM = your values.")
+                        Component.literal("Default = balanced."),
+                        Component.literal("Responsive = reacts faster, more jitter."),
+                        Component.literal("Smooth = steadier numbers."),
+                        Component.literal("Custom = your values.")
                 )
                 .setSaveConsumer(v -> {
                     working.preset = v;
@@ -201,9 +201,9 @@ public final class PerformanceOverlayConfigScreen {
         advanced.addEntry(eb.startEnumSelector(label("Pause handling"), OverlayConfig.PauseHandling.class, working.pauseHandling)
                 .setDefaultValue(defaults.pauseHandling)
                 .setTooltip(
-                        Component.literal("RESET = clear stats."),
-                        Component.literal("FREEZE = stop sampling, keep values."),
-                        Component.literal("TRACK = keep sampling (may distort).")
+                        Component.literal("Reset = clear stats."),
+                        Component.literal("Freeze = stop sampling, keep values."),
+                        Component.literal("Track = keep sampling (may distort).")
                 )
                 .setSaveConsumer(v -> {
                     working.pauseHandling = v;
@@ -214,8 +214,8 @@ public final class PerformanceOverlayConfigScreen {
         advanced.addEntry(eb.startEnumSelector(label("Low calculation method"), OverlayConfig.LowMethod.class, working.lowMethod)
                 .setDefaultValue(defaults.lowMethod)
                 .setTooltip(
-                        Component.literal("MEAN_WORST = average of worst frames (stricter)."),
-                        Component.literal("PERCENTILE = percentile frametime (more standard).")
+                        Component.literal("Mean worst = average of worst frames (stricter)."),
+                        Component.literal("Percentile = percentile frametime (more standard).")
                 )
                 .setSaveConsumer(v -> {
                     working.lowMethod = v;
@@ -260,18 +260,18 @@ public final class PerformanceOverlayConfigScreen {
                 })
                 .build());
 
-        advanced.addEntry(eb.startIntField(label("Avg update (ms)"), working.avgUpdateMs)
+        advanced.addEntry(eb.startIntField(label("Average FPS update (ms)"), working.avgUpdateMs)
                 .setDefaultValue(defaults.avgUpdateMs)
                 .setMin(100)
                 .setMax(10000)
-                .setTooltip(Component.literal("How often Avg recalculates."))
+                .setTooltip(Component.literal("How often average FPS recalculates."))
                 .setSaveConsumer(v -> {
                     working.avgUpdateMs = clamp(v, 100, 10000);
                     working.preset = OverlayConfig.Preset.CUSTOM;
                 })
                 .build());
 
-        advanced.addEntry(eb.startIntField(label("1% Low update (ms)"), working.low1UpdateMs)
+        advanced.addEntry(eb.startIntField(label("1% low update (ms)"), working.low1UpdateMs)
                 .setDefaultValue(defaults.low1UpdateMs)
                 .setMin(100)
                 .setMax(10000)
@@ -282,7 +282,7 @@ public final class PerformanceOverlayConfigScreen {
                 })
                 .build());
 
-        advanced.addEntry(eb.startIntField(label("0.1% Low update (ms)"), working.low01UpdateMs)
+        advanced.addEntry(eb.startIntField(label("0.1% low update (ms)"), working.low01UpdateMs)
                 .setDefaultValue(defaults.low01UpdateMs)
                 .setMin(100)
                 .setMax(10000)
@@ -317,18 +317,18 @@ public final class PerformanceOverlayConfigScreen {
                 })
                 .build());
 
-        advanced.addEntry(eb.startIntField(label("Avg window (sec)"), working.avgWindowSec)
+        advanced.addEntry(eb.startIntField(label("Average FPS window (sec)"), working.avgWindowSec)
                 .setDefaultValue(defaults.avgWindowSec)
                 .setMin(1)
                 .setMax(30)
-                .setTooltip(Component.literal("History window used to calculate Avg FPS."))
+                .setTooltip(Component.literal("History window used to calculate average FPS."))
                 .setSaveConsumer(v -> {
                     working.avgWindowSec = clamp(v, 1, 30);
                     working.preset = OverlayConfig.Preset.CUSTOM;
                 })
                 .build());
 
-        advanced.addEntry(eb.startIntField(label("1% Low window (sec)"), working.low1WindowSec)
+        advanced.addEntry(eb.startIntField(label("1% low window (sec)"), working.low1WindowSec)
                 .setDefaultValue(defaults.low1WindowSec)
                 .setMin(1)
                 .setMax(60)
@@ -339,7 +339,7 @@ public final class PerformanceOverlayConfigScreen {
                 })
                 .build());
 
-        advanced.addEntry(eb.startIntField(label("0.1% Low window (sec)"), working.low01WindowSec)
+        advanced.addEntry(eb.startIntField(label("0.1% low window (sec)"), working.low01WindowSec)
                 .setDefaultValue(defaults.low01WindowSec)
                 .setMin(1)
                 .setMax(60)
@@ -374,7 +374,7 @@ public final class PerformanceOverlayConfigScreen {
                 })
                 .build());
 
-        advanced.addEntry(eb.startTextDescription(section("— Colouring —")).build());
+        advanced.addEntry(eb.startTextDescription(section("— Coloring —")).build());
 
         advanced.addEntry(eb.startBooleanToggle(label("Color thresholds"), working.colorThresholds)
                 .setDefaultValue(defaults.colorThresholds)
@@ -384,7 +384,7 @@ public final class PerformanceOverlayConfigScreen {
 
         advanced.addEntry(eb.startEnumSelector(label("Color target"), OverlayConfig.ColorTarget.class, working.colorTarget)
                 .setDefaultValue(defaults.colorTarget)
-                .setTooltip(Component.literal("Use FPS, 1% Low, or 0.1% Low for colouring."))
+                .setTooltip(Component.literal("Use FPS, 1% low, or 0.1% low for coloring."))
                 .setSaveConsumer(v -> working.colorTarget = v)
                 .build());
 

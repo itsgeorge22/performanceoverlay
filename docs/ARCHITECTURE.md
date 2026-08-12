@@ -214,6 +214,8 @@ If the file does not exist, defaults are created and saved.
 
 Reads and writes use the whole JSON file. Loaded values are validated against the same ranges used by the configuration screen, missing enum values receive defaults, and malformed JSON falls back to the default configuration. Write I/O errors are still ignored, and no schema migration layer is implemented.
 
+Configuration UI text uses sentence case, retains uppercase technical acronyms such as FPS and GC, and displays enum choices as readable words with spaces rather than serialized identifiers. Serialized JSON enum names remain unchanged for compatibility.
+
 ## Threading model
 
 No worker thread or asynchronous benchmark writer is present in the current implementation.
