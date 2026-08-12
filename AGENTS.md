@@ -36,8 +36,9 @@ When changing behavior:
 After changing behavior:
 
 - Validate the affected logic.
+- Tell the user how to manually test the completed change, using concise step-by-step instructions and the expected result.
 - Update `CHANGELOG.md` in the same piece of work for every meaningful bug fix, feature, behavior change, compatibility change, or performance improvement.
-- Add new changelog entries under `## Unreleased`; do not wait until release preparation to reconstruct completed work.
+- Add new changelog entries directly under the current `## X.X.X [WIP]` heading, with no blank line after the heading; do not wait until release preparation to reconstruct completed work.
 - Keep changelog entries concise and user-facing. Do not add entries for trivial edits that do not affect the project or its users.
 - Update persistent documentation when the accepted behavior, metric contract, architecture, or testing requirements change.
 - Explicitly call out known limitations that remain relevant to the task.

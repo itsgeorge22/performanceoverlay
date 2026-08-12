@@ -1,7 +1,7 @@
 # Changelog
 
-## Unreleased
-
+## 1.0.2 [WIP]
+- Fixed benchmark CSV data to remain complete when metrics are hidden and use a fresh, fixed measurement configuration for each run.
 - Fixed the settings screen resetting Max Spike visibility and benchmark duration when saving.
 
 ## 1.0.1

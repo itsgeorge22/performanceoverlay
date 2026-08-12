@@ -23,6 +23,7 @@ public final class FpsTracker {
     private static final DateTimeFormatter TS_HUMAN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private OverlayConfig config;
+    private BenchmarkSettings liveSettings;
 
     private long[] timeNs;
     private long[] frameNs;
@@ -65,6 +66,7 @@ public final class FpsTracker {
 
     // Benchmark
     private boolean benchmarkActive = false;
+    private BenchmarkSettings benchmarkSettings = null;
     private long benchmarkStartNs = 0;
     private BufferedWriter benchmarkWriter = null;
     private String benchmarkFileName = "";
@@ -92,11 +94,14 @@ public final class FpsTracker {
         wasEnabled = cfg.enabled;
 
         this.config = cfg;
+        this.liveSettings = BenchmarkSettings.capture(cfg);
 
-        ensureCapacity();
+        ensureCapacity(activeSettings());
 
-        if (forceReset || enabledChangedToTrue) {
+        if (forceReset || (enabledChangedToTrue && !benchmarkActive)) {
             reset();
+        } else {
+            cached = buildSnapshot(pickColor(cachedFps, cachedLow1, cachedLow01));
         }
     }
 
@@ -177,6 +182,11 @@ public final class FpsTracker {
         return lastBenchmarkSummary;
     }
 
+    public int getActiveBenchmarkDurationSec() {
+        BenchmarkSettings settings = benchmarkSettings;
+        return settings != null ? settings.autoBenchmarkDurationSec() : Math.max(0, config.autoBenchmarkDurationSec);
+    }
+
     private BenchmarkStatus startBenchmark() {
         // Defensive: close any leftover writer
         if (benchmarkWriter != null) {
@@ -188,6 +198,7 @@ public final class FpsTracker {
         }
 
         benchmarkHadWriteError = false;
+        BenchmarkSettings settings = liveSettings;
 
         try {
             Path dir = FabricLoader.getInstance().getConfigDir().resolve("performanceoverlay").resolve("benchmarks");
@@ -205,17 +216,29 @@ public final class FpsTracker {
             benchmarkWriter.write("# Date: " + now.format(TS_HUMAN) + "\n");
             benchmarkWriter.write("# ModVersion: " + getModVersion() + "\n");
             benchmarkWriter.write("# Minecraft: " + getMinecraftVersion() + "\n");
-            benchmarkWriter.write("# DurationSec: " + Math.max(0, config.autoBenchmarkDurationSec) + "\n");
-            benchmarkWriter.write("# PauseHandling: " + config.pauseHandling.name() + "\n");
-            benchmarkWriter.write("# StutterThresholdMs: " + config.stutterThresholdMs + "\n");
-            benchmarkWriter.write("# AvgWindowSec: " + config.avgWindowSec + "\n");
-            benchmarkWriter.write("# Low1WindowSec: " + config.low1WindowSec + "\n");
-            benchmarkWriter.write("# Low01WindowSec: " + config.low01WindowSec + "\n");
-            benchmarkWriter.write("# FpsWindowMs: " + config.fpsWindowMs + "\n");
+            benchmarkWriter.write("# DurationSec: " + settings.autoBenchmarkDurationSec() + "\n");
+            benchmarkWriter.write("# PauseHandling: " + settings.pauseHandling().name() + "\n");
+            benchmarkWriter.write("# LowMethod: " + settings.lowMethod().name() + "\n");
+            benchmarkWriter.write("# StutterThresholdMs: " + settings.stutterThresholdMs() + "\n");
+            benchmarkWriter.write("# StutterWindowSec: " + settings.stutterWindowSec() + "\n");
+            benchmarkWriter.write("# FpsWindowMs: " + settings.fpsWindowMs() + "\n");
+            benchmarkWriter.write("# AvgWindowSec: " + settings.avgWindowSec() + "\n");
+            benchmarkWriter.write("# Low1WindowSec: " + settings.low1WindowSec() + "\n");
+            benchmarkWriter.write("# Low01WindowSec: " + settings.low01WindowSec() + "\n");
+            benchmarkWriter.write("# FpsUpdateMs: " + settings.fpsUpdateMs() + "\n");
+            benchmarkWriter.write("# FrametimeUpdateMs: " + settings.frametimeUpdateMs() + "\n");
+            benchmarkWriter.write("# AvgUpdateMs: " + settings.avgUpdateMs() + "\n");
+            benchmarkWriter.write("# Low1UpdateMs: " + settings.low1UpdateMs() + "\n");
+            benchmarkWriter.write("# Low01UpdateMs: " + settings.low01UpdateMs() + "\n");
+            benchmarkWriter.write("# StuttersUpdateMs: " + settings.stuttersUpdateMs() + "\n");
 
             benchmarkWriter.write(
                     "elapsed_ms,frame_ms,inst_fps,fps_smoothed,avg_fps,low1_fps,low01_fps,stutters,stutter_percent,max_spike_ms,gc_pause_ms,mem_used_mb,mem_max_mb\n"
             );
+
+            benchmarkSettings = settings;
+            ensureCapacity(settings);
+            reset();
 
             benchmarkActive = true;
             benchmarkStartNs = System.nanoTime();
@@ -241,12 +264,13 @@ public final class FpsTracker {
 
     private BenchmarkStatus stopBenchmark() {
         try {
+            BenchmarkSettings settings = benchmarkSettings != null ? benchmarkSettings : liveSettings;
             benchmarkActive = false;
 
             String name = benchmarkFileName;
             String path = benchmarkFilePath;
 
-            lastBenchmarkSummary = buildBenchmarkSummaryFullRun();
+            lastBenchmarkSummary = buildBenchmarkSummaryFullRun(settings);
 
             if (benchmarkWriter != null) {
                 benchmarkWriter.write("# SUMMARY\n");
@@ -288,6 +312,7 @@ public final class FpsTracker {
         }
 
         benchmarkWriter = null;
+        benchmarkSettings = null;
         benchmarkFileName = "";
         benchmarkFilePath = "";
         benchmarkStartNs = 0;
@@ -299,12 +324,14 @@ public final class FpsTracker {
         benchmarkMaxFrameNs = 0;
 
         lastBenchmarkSummary = new BenchmarkSummary(0, 0, 0, 0, 0, 0);
+        ensureCapacity(liveSettings);
     }
 
     private void clearBenchmarkStateKeepSummary() {
         benchmarkActive = false;
 
         benchmarkWriter = null;
+        benchmarkSettings = null;
         benchmarkFileName = "";
         benchmarkFilePath = "";
         benchmarkStartNs = 0;
@@ -314,25 +341,28 @@ public final class FpsTracker {
         benchmarkFramesSize = 0;
         benchmarkTotalNs = 0;
         benchmarkMaxFrameNs = 0;
+        ensureCapacity(liveSettings);
     }
 
     public void onFrame(boolean paused) {
         long nowNs = System.nanoTime();
 
-        if (!config.enabled) {
+        if (!config.enabled && !benchmarkActive) {
             lastFrameStartNs = nowNs;
             wasPaused = paused;
             return;
         }
 
+        BenchmarkSettings settings = activeSettings();
+
         if (paused) {
-            if (config.pauseHandling == OverlayConfig.PauseHandling.RESET) {
+            if (settings.pauseHandling() == OverlayConfig.PauseHandling.RESET) {
                 if (!wasPaused) {
                     reset();
                 }
                 wasPaused = true;
                 lastFrameStartNs = nowNs;
-            } else if (config.pauseHandling == OverlayConfig.PauseHandling.FREEZE) {
+            } else if (settings.pauseHandling() == OverlayConfig.PauseHandling.FREEZE) {
                 wasPaused = true;
                 lastFrameStartNs = nowNs;
             } else {
@@ -340,7 +370,7 @@ public final class FpsTracker {
                 wasPaused = true;
             }
 
-            if (config.pauseHandling != OverlayConfig.PauseHandling.TRACK) {
+            if (settings.pauseHandling() != OverlayConfig.PauseHandling.TRACK) {
                 return;
             }
         } else {
@@ -360,7 +390,7 @@ public final class FpsTracker {
         }
 
         push(nowNs, dtNs);
-        pruneOld(nowNs);
+        pruneOld(nowNs, settings);
 
         boolean changed = false;
 
@@ -368,11 +398,11 @@ public final class FpsTracker {
         boolean needLow1ForColor = config.colorThresholds && config.colorTarget == OverlayConfig.ColorTarget.LOW_1;
         boolean needLow01ForColor = config.colorThresholds && config.colorTarget == OverlayConfig.ColorTarget.LOW_01;
 
-        boolean dueFps = (config.showFps || needFpsForColor) && due(nowNs, lastFpsUpdateNs, clamp(config.fpsUpdateMs, 50, 5000));
-        boolean dueFt = config.showFrametime && due(nowNs, lastFtUpdateNs, clamp(config.frametimeUpdateMs, 50, 5000));
+        boolean dueFps = (benchmarkActive || config.showFps || needFpsForColor) && due(nowNs, lastFpsUpdateNs, settings.fpsUpdateMs());
+        boolean dueFt = config.showFrametime && due(nowNs, lastFtUpdateNs, settings.frametimeUpdateMs());
 
         if (dueFps || dueFt) {
-            Smoothed s = computeSmoothed(nowNs, dtNs);
+            Smoothed s = computeSmoothed(nowNs, dtNs, settings);
 
             if (dueFps) {
                 cachedFps = s.fps;
@@ -386,27 +416,27 @@ public final class FpsTracker {
             }
         }
 
-        if (config.showAvg && due(nowNs, lastAvgUpdateNs, clamp(config.avgUpdateMs, 100, 10000))) {
-            cachedAvg = windowFps(nowNs, (long) config.avgWindowSec * NS_PER_SEC);
+        if ((benchmarkActive || config.showAvg) && due(nowNs, lastAvgUpdateNs, settings.avgUpdateMs())) {
+            cachedAvg = windowFps(nowNs, (long) settings.avgWindowSec() * NS_PER_SEC);
             lastAvgUpdateNs = nowNs;
             changed = true;
         }
 
-        if ((config.show1Low || needLow1ForColor) && due(nowNs, lastLow1UpdateNs, clamp(config.low1UpdateMs, 100, 10000))) {
-            cachedLow1 = lowValue(nowNs, (long) config.low1WindowSec * NS_PER_SEC, 0.01);
+        if ((benchmarkActive || config.show1Low || needLow1ForColor) && due(nowNs, lastLow1UpdateNs, settings.low1UpdateMs())) {
+            cachedLow1 = lowValue(nowNs, (long) settings.low1WindowSec() * NS_PER_SEC, 0.01, settings.lowMethod());
             lastLow1UpdateNs = nowNs;
             changed = true;
         }
 
-        if ((config.show01Low || needLow01ForColor) && due(nowNs, lastLow01UpdateNs, clamp(config.low01UpdateMs, 100, 10000))) {
-            cachedLow01 = lowValue(nowNs, (long) config.low01WindowSec * NS_PER_SEC, 0.001);
+        if ((benchmarkActive || config.show01Low || needLow01ForColor) && due(nowNs, lastLow01UpdateNs, settings.low01UpdateMs())) {
+            cachedLow01 = lowValue(nowNs, (long) settings.low01WindowSec() * NS_PER_SEC, 0.001, settings.lowMethod());
             lastLow01UpdateNs = nowNs;
             changed = true;
         }
 
-        if ((config.showStutters || config.showMaxSpike) && due(nowNs, lastStuttersUpdateNs, clamp(config.stuttersUpdateMs, 100, 10000))) {
-            long windowNs = (long) config.stutterWindowSec * NS_PER_SEC;
-            long thresholdNs = (long) Math.max(1, config.stutterThresholdMs) * NS_PER_MS;
+        if ((benchmarkActive || config.showStutters || config.showMaxSpike) && due(nowNs, lastStuttersUpdateNs, settings.stuttersUpdateMs())) {
+            long windowNs = (long) settings.stutterWindowSec() * NS_PER_SEC;
+            long thresholdNs = (long) settings.stutterThresholdMs() * NS_PER_MS;
 
             WindowStats w = windowStats(nowNs, windowNs);
             int frames = w.count;
@@ -418,6 +448,26 @@ public final class FpsTracker {
             cachedMaxSpikeMs = nsToMs(maxFrameNs);
 
             lastStuttersUpdateNs = nowNs;
+            changed = true;
+        }
+
+        // GC collection time (once per second)
+        if ((benchmarkActive || config.showGc) && due(nowNs, lastGcUpdateNs, 1000)) {
+            long gcMs = readLastGcPauseMs();
+            cachedGcPauseMs = (gcMs > 0) ? gcMs : -1;
+            lastGcUpdateNs = nowNs;
+            changed = true;
+        }
+
+        // Memory (every 250 ms)
+        if ((benchmarkActive || config.showMemory) && due(nowNs, lastMemUpdateNs, 250)) {
+            Runtime rt = Runtime.getRuntime();
+            long used = rt.totalMemory() - rt.freeMemory();
+
+            cachedMemUsedMb = used / (1024 * 1024);
+            cachedMemMaxMb = rt.maxMemory() / (1024 * 1024);
+
+            lastMemUpdateNs = nowNs;
             changed = true;
         }
 
@@ -459,26 +509,6 @@ public final class FpsTracker {
                 benchmarkHadWriteError = true;
                 clearBenchmarkStateKeepSummary();
             }
-        }
-
-        // GC pause (once per second)
-        if (config.showGc && due(nowNs, lastGcUpdateNs, 1000)) {
-            long gcMs = readLastGcPauseMs();
-            cachedGcPauseMs = (gcMs > 0) ? gcMs : -1;
-            lastGcUpdateNs = nowNs;
-            changed = true;
-        }
-
-        // Memory (once per second)
-        if (config.showMemory && due(nowNs, lastMemUpdateNs, 250)) {
-            Runtime rt = Runtime.getRuntime();
-            long used = rt.totalMemory() - rt.freeMemory();
-
-            cachedMemUsedMb = used / (1024 * 1024);
-            cachedMemMaxMb = rt.maxMemory() / (1024 * 1024);
-
-            lastMemUpdateNs = nowNs;
-            changed = true;
         }
 
         if (changed) {
@@ -675,11 +705,15 @@ public final class FpsTracker {
         return COLOR_WHITE;
     }
 
-    private Smoothed computeSmoothed(long nowNs, long lastDtNs) {
+    private BenchmarkSettings activeSettings() {
+        return benchmarkActive && benchmarkSettings != null ? benchmarkSettings : liveSettings;
+    }
+
+    private Smoothed computeSmoothed(long nowNs, long lastDtNs, BenchmarkSettings settings) {
         double fps = nsToFps(lastDtNs);
         double ftMs = nsToMs(lastDtNs);
 
-        long windowNs = (long) config.fpsWindowMs * NS_PER_MS;
+        long windowNs = (long) settings.fpsWindowMs() * NS_PER_MS;
         WindowStats w = windowStats(nowNs, windowNs);
 
         if (w.count >= 2 && w.sumNs > 0) {
@@ -690,13 +724,13 @@ public final class FpsTracker {
         return new Smoothed(fps, ftMs);
     }
 
-    private double lowValue(long nowNs, long windowNs, double worstPercent) {
+    private double lowValue(long nowNs, long windowNs, double worstPercent, OverlayConfig.LowMethod lowMethod) {
         int n = copyFramesToScratch(nowNs, windowNs);
         if (n <= 0) {
             return 0;
         }
 
-        if (config.lowMethod == OverlayConfig.LowMethod.MEAN_WORST) {
+        if (lowMethod == OverlayConfig.LowMethod.MEAN_WORST) {
             int k = Math.max(1, (int) Math.ceil(n * worstPercent));
             long meanWorst = meanWorstK(scratch, n, k);
             return nsToFps(meanWorst);
@@ -807,15 +841,15 @@ public final class FpsTracker {
         return n;
     }
 
-    private void ensureCapacity() {
+    private void ensureCapacity(BenchmarkSettings settings) {
         int maxSec = 1;
 
-        maxSec = Math.max(maxSec, config.avgWindowSec);
-        maxSec = Math.max(maxSec, config.low1WindowSec);
-        maxSec = Math.max(maxSec, config.low01WindowSec);
-        maxSec = Math.max(maxSec, config.stutterWindowSec);
+        maxSec = Math.max(maxSec, settings.avgWindowSec());
+        maxSec = Math.max(maxSec, settings.low1WindowSec());
+        maxSec = Math.max(maxSec, settings.low01WindowSec());
+        maxSec = Math.max(maxSec, settings.stutterWindowSec());
 
-        int fpsSec = (int) Math.ceil((double) config.fpsWindowMs / 1000.0);
+        int fpsSec = (int) Math.ceil((double) settings.fpsWindowMs() / 1000.0);
         maxSec = Math.max(maxSec, fpsSec);
 
         int desired = maxSec * 1200;
@@ -846,15 +880,15 @@ public final class FpsTracker {
         size++;
     }
 
-    private void pruneOld(long nowNs) {
+    private void pruneOld(long nowNs, BenchmarkSettings settings) {
         int maxSec = 1;
 
-        maxSec = Math.max(maxSec, config.avgWindowSec);
-        maxSec = Math.max(maxSec, config.low1WindowSec);
-        maxSec = Math.max(maxSec, config.low01WindowSec);
-        maxSec = Math.max(maxSec, config.stutterWindowSec);
+        maxSec = Math.max(maxSec, settings.avgWindowSec());
+        maxSec = Math.max(maxSec, settings.low1WindowSec());
+        maxSec = Math.max(maxSec, settings.low01WindowSec());
+        maxSec = Math.max(maxSec, settings.stutterWindowSec());
 
-        int fpsSec = (int) Math.ceil((double) config.fpsWindowMs / 1000.0);
+        int fpsSec = (int) Math.ceil((double) settings.fpsWindowMs() / 1000.0);
         maxSec = Math.max(maxSec, fpsSec);
 
         long minNs = nowNs - (long) maxSec * NS_PER_SEC;
@@ -1067,7 +1101,7 @@ public final class FpsTracker {
         }
     }
 
-    private BenchmarkSummary buildBenchmarkSummaryFullRun() {
+    private BenchmarkSummary buildBenchmarkSummaryFullRun(BenchmarkSettings settings) {
         int n = benchmarkFramesSize;
         if (n <= 0 || benchmarkTotalNs <= 0) {
             return new BenchmarkSummary(0, 0, 0, 0, 0, 0);
@@ -1078,7 +1112,7 @@ public final class FpsTracker {
         double low1Fps;
         double low01Fps;
 
-        if (config.lowMethod == OverlayConfig.LowMethod.MEAN_WORST) {
+        if (settings.lowMethod() == OverlayConfig.LowMethod.MEAN_WORST) {
             long meanWorst1 = meanWorstKFullRun(n, 0.01);
             long meanWorst01 = meanWorstKFullRun(n, 0.001);
 
@@ -1092,7 +1126,7 @@ public final class FpsTracker {
             low01Fps = nsToFps(p999Ns);
         }
 
-        long thresholdNs = (long) Math.max(1, config.stutterThresholdMs) * NS_PER_MS;
+        long thresholdNs = (long) settings.stutterThresholdMs() * NS_PER_MS;
         int stutters = 0;
         for (int i = 0; i < n; i++) {
             if (benchmarkFramesNs[i] >= thresholdNs) {
@@ -1135,6 +1169,51 @@ public final class FpsTracker {
         System.arraycopy(benchmarkFramesNs, 0, scratch, 0, n);
 
         return meanWorstK(scratch, n, k);
+    }
+
+    private record BenchmarkSettings(
+            int autoBenchmarkDurationSec,
+            int fpsUpdateMs,
+            int frametimeUpdateMs,
+            int avgUpdateMs,
+            int low1UpdateMs,
+            int low01UpdateMs,
+            int stuttersUpdateMs,
+            int fpsWindowMs,
+            int avgWindowSec,
+            int low1WindowSec,
+            int low01WindowSec,
+            int stutterThresholdMs,
+            int stutterWindowSec,
+            OverlayConfig.LowMethod lowMethod,
+            OverlayConfig.PauseHandling pauseHandling
+    ) {
+        private static BenchmarkSettings capture(OverlayConfig config) {
+            OverlayConfig.LowMethod lowMethod = config.lowMethod != null
+                    ? config.lowMethod
+                    : OverlayConfig.LowMethod.PERCENTILE;
+            OverlayConfig.PauseHandling pauseHandling = config.pauseHandling != null
+                    ? config.pauseHandling
+                    : OverlayConfig.PauseHandling.FREEZE;
+
+            return new BenchmarkSettings(
+                    Math.max(0, config.autoBenchmarkDurationSec),
+                    clamp(config.fpsUpdateMs, 50, 5000),
+                    clamp(config.frametimeUpdateMs, 50, 5000),
+                    clamp(config.avgUpdateMs, 100, 10000),
+                    clamp(config.low1UpdateMs, 100, 10000),
+                    clamp(config.low01UpdateMs, 100, 10000),
+                    clamp(config.stuttersUpdateMs, 100, 10000),
+                    Math.max(1, config.fpsWindowMs),
+                    Math.max(1, config.avgWindowSec),
+                    Math.max(1, config.low1WindowSec),
+                    Math.max(1, config.low01WindowSec),
+                    Math.max(1, config.stutterThresholdMs),
+                    Math.max(1, config.stutterWindowSec),
+                    lowMethod,
+                    pauseHandling
+            );
+        }
     }
 
     private record Smoothed(double fps, double ftMs) {

@@ -14,15 +14,16 @@
 ## Maintaining the changelog
 
 - Record every meaningful bug fix, feature, behavior change, compatibility change, and performance improvement in `CHANGELOG.md` as the work is completed.
-- Add ongoing work under `## Unreleased` instead of waiting until release preparation.
+- Add ongoing work under the current `## X.X.X [WIP]` heading instead of waiting until release preparation.
 - Use one concise, user-facing bullet for each meaningful change.
 - Group closely related changes into one bullet and omit trivial edits with no user-visible or project-level impact.
-- When preparing a release, move the completed Unreleased entries under the new version heading and recreate an empty `## Unreleased` section at the top.
+- Place changelog bullets directly below the version heading with no blank line between them.
+- When preparing a release, remove `[WIP]` from the version heading after its entries are final.
 
 ## Before a release
 
 - Confirm the release version and whether it is Alpha, Beta, or Release.
-- Review the accumulated `## Unreleased` changelog entries and move them under the new version heading.
+- Review the accumulated entries under the current `[WIP]` version heading and remove `[WIP]` when they are final.
 - Bump `mod_version` in `gradle.properties`.
 - Review the JAR name and Minecraft compatibility range.
 - Update relevant README, architecture, metrics, testing, release, and issue-template documentation.

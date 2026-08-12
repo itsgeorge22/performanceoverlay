@@ -162,7 +162,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             }
 
             while (benchmarkKey.consumeClick()) {
-                if (!config.enabled) {
+                if (!config.enabled && !tracker.isBenchmarkActive()) {
                     showActionbarPlain(client, Component.literal("Enable overlay first").withStyle(ChatFormatting.WHITE));
                     continue;
                 }
@@ -176,7 +176,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 }
 
                 if (s.started()) {
-                    int durSec = Math.max(0, config.autoBenchmarkDurationSec);
+                    int durSec = tracker.getActiveBenchmarkDurationSec();
 
                     benchmarkStartedAtNs = System.nanoTime();
                     benchmarkDurationSecActive = durSec;
@@ -211,14 +211,16 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 VanillaHudElements.CHAT,
                 Identifier.fromNamespaceAndPath(MOD_ID, "overlay"),
                 (guiGraphics, deltaTracker) -> {
-                    if (!config.enabled) {
+                    if (!config.enabled && !tracker.isBenchmarkActive()) {
                         return;
                     }
 
                     boolean paused = Minecraft.getInstance().isPaused();
                     tracker.onFrame(paused);
 
-                    OverlayRenderer.render(guiGraphics, config, tracker.getSnapshot());
+                    if (config.enabled) {
+                        OverlayRenderer.render(guiGraphics, config, tracker.getSnapshot());
+                    }
                 }
         );
     }

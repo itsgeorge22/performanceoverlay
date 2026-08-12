@@ -19,9 +19,11 @@ The first eligible callback after initialization or reset has no previous timest
 
 The sample is stored with the timestamp captured near the start of `FpsTracker.onFrame()`, which the tracker uses as its window timestamp.
 
-If the overlay is disabled, the HUD callback returns before `FpsTracker.onFrame()` is called, so no frame samples are collected.
+If the overlay is disabled, frame samples are not collected unless a benchmark is already active. An active benchmark continues sampling without rendering the overlay.
 
 ## Pause handling
+
+The selected pause-handling mode is captured when a benchmark starts. Changing it during that run does not change the benchmark's behavior.
 
 ### `FREEZE`
 
@@ -159,7 +161,7 @@ maxSpikeMs = maximumFrameNs / 1_000_000
 
 ## Garbage collection metric
 
-When GC display is enabled, the tracker polls approximately once per second.
+When GC display is enabled or a benchmark is active, the tracker polls approximately once per second.
 
 It sums positive `getCollectionTime()` values from all `GarbageCollectorMXBean` instances and subtracts the previously observed total.
 
@@ -178,7 +180,7 @@ A non-positive result is stored internally as unavailable and currently renders 
 
 ## Memory metric
 
-When memory display is enabled, the tracker polls every 250 ms.
+When memory display is enabled or a benchmark is active, the tracker polls every 250 ms.
 
 ```text
 usedBytes = Runtime.totalMemory() - Runtime.freeMemory()
@@ -222,9 +224,11 @@ Configured update intervals are clamped by the tracker:
 
 A benchmark CSV row can therefore contain rolling values that were calculated on an earlier frame.
 
+While a benchmark is active, every metric exported to its CSV is refreshed at its configured cadence even when the corresponding overlay metric is hidden.
+
 ## Benchmark raw frame capture
 
-When a benchmark is active, every measured `dtNs` is appended to a dedicated full-run frame array in addition to the rolling history.
+Starting a benchmark resets rolling history, cached metrics, and update timestamps. The first callback establishes a fresh timestamp and is not logged. Every subsequent measured `dtNs` is appended to a dedicated full-run frame array in addition to the rolling history.
 
 The array starts at 6000 samples and doubles up to a hard maximum of 5,000,000 retained samples.
 
@@ -254,9 +258,24 @@ mem_max_mb
 
 `fps_smoothed`, `avg_fps`, lows, stutters, spike, GC, and memory use the tracker's cached rolling values.
 
-Current limitation: several cached values are only refreshed when their overlay metric is visible or required for color selection. CSV completeness therefore currently depends on UI/configuration state.
+The exported rolling metrics are calculated regardless of overlay visibility while a benchmark is active. Their cached values can repeat between configured refreshes.
 
-GC and memory sampling occurs after the benchmark row is written in `onFrame()`, so a row contains the previously cached GC and memory values.
+GC and memory are sampled before the current benchmark row is written whenever their fixed polling cadence is due.
+
+`frame_ms` is the authoritative per-frame measurement. The other columns are derived or periodically sampled context for that frame.
+
+## Benchmark settings snapshot
+
+At benchmark start, the tracker captures the settings that define measurement and export behavior:
+
+- automatic duration,
+- pause handling,
+- low calculation method,
+- FPS, average, low, and stutter windows,
+- stutter threshold,
+- metric update intervals.
+
+These captured values are written into the CSV metadata and remain fixed for the run. Saved changes to them become active after the benchmark stops. Display-only choices such as metric visibility, layout, position, scale, and colors continue to use the live configuration.
 
 ## Benchmark full-run summary
 
@@ -268,13 +287,11 @@ Average FPS:
 avgFps = retainedFrameCount * 1_000_000_000 / retainedTotalFrameNs
 ```
 
-1% low and 0.1% low use the currently configured low method over all retained benchmark frames.
+1% low and 0.1% low use the low method captured when the benchmark started over all retained benchmark frames.
 
-Stutters use the currently configured stutter threshold over all retained benchmark frames.
+Stutters use the stutter threshold captured when the benchmark started over all retained benchmark frames.
 
 Maximum spike is the maximum retained benchmark frame duration.
-
-Current limitation: the benchmark does not snapshot all metric-defining settings at start. A live settings change during a run can therefore make final-summary semantics differ from the metadata written at benchmark start.
 
 ## Reset semantics
 

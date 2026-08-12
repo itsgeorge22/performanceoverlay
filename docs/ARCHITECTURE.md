@@ -42,19 +42,19 @@ The repository also contains example mixin source/config remnants. `fabric.mod.j
 
 ```text
 Fabric HUD callback
-    -> return immediately if config.enabled == false
+    -> return immediately if both overlay and benchmark are inactive
     -> read Minecraft pause state
     -> FpsTracker.onFrame(paused)
         -> measure callback interval
         -> push/prune rolling frame history
         -> refresh due cached metrics
-        -> capture/write benchmark frame if active
         -> poll GC/memory when due
+        -> capture/write benchmark frame if active
         -> rebuild cached Snapshot if a visible/cached metric changed
-    -> OverlayRenderer.render(..., tracker.getSnapshot())
+    -> render Snapshot only if overlay is enabled
 ```
 
-Sampling is therefore coupled to execution of the enabled HUD callback.
+Normal sampling is coupled to the enabled overlay. An active benchmark continues sampling through the HUD callback if the overlay is disabled through the settings screen.
 
 All current frame measurement, rolling metric work, benchmark per-frame work, snapshot generation, and overlay rendering are executed synchronously on the client/render path used by the HUD callback.
 
@@ -87,7 +87,7 @@ Layouts cycle:
 ONE_LINE -> THREE_LINES -> COLUMN -> ONE_LINE
 ```
 
-Starting a benchmark through F10 is rejected when the overlay is disabled.
+Starting a benchmark through F10 is rejected when the overlay is disabled. F10 can still stop an active benchmark if the overlay was disabled through the settings screen during the run.
 
 When F7 disables the overlay during an active benchmark, the tracker is told to stop the benchmark and local auto-stop/progress state is cleared.
 
@@ -133,6 +133,7 @@ Benchmark state is stored directly in `FpsTracker`:
 - frame/write counters,
 - dedicated full-run frame array,
 - retained total duration and maximum frame,
+- an immutable snapshot of measurement settings for the active run,
 - last completed summary.
 
 Benchmark CSV formatting and `BufferedWriter.write()` are currently performed inside `onFrame()`.
@@ -155,7 +156,7 @@ benchmark_yyyyMMdd_HHmmss.csv
 
 The file contains start-time metadata, per-frame CSV rows, then a summary footer on normal stop.
 
-The start metadata currently records duration, pause handling, stutter threshold, average/low windows, and FPS smoothing window. It does not record every setting that can affect final summary semantics.
+The start metadata records the captured duration, pause handling, low method, stutter settings, rolling windows, and metric update intervals. Those measurement settings remain fixed until the run stops, while display-only configuration remains live.
 
 ## Rendering
 
@@ -239,9 +240,8 @@ The build targets Minecraft 1.21.11; the same JAR has been manually verified on 
 
 These are confirmed characteristics of the current implementation, not automatically approved redesign targets:
 
-- Frame measurement depends on the enabled HUD callback.
+- Normal frame measurement depends on the enabled HUD callback; an active benchmark keeps the callback's measurement path running without drawing the overlay.
 - Benchmark per-frame CSV formatting and writes occur on the measurement/render path.
 - Rolling benchmark CSV columns reuse cached overlay metrics.
-- Some cached metric calculation is conditional on visibility or color-target needs.
-- Benchmark full-run summary settings are not fully immutable for the duration of a run.
+- Outside benchmarks, some cached metric calculation is conditional on visibility or color-target needs.
 - No automated test source set is present in the uploaded repository snapshot.
