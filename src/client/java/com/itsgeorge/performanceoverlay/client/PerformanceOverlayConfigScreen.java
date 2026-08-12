@@ -50,7 +50,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setDefaultValue(defaults.enabled)
                 .setTooltip(
                         Component.literal("Show or hide the overlay."),
-                        Component.literal("Off = no overlay and no tracking.")
+                        Component.literal("Off hides the overlay. Active benchmarks continue running.")
                 )
                 .setSaveConsumer(v -> working.enabled = v)
                 .build());
@@ -118,7 +118,7 @@ public final class PerformanceOverlayConfigScreen {
                 .build());
         overlay.addEntry(eb.startBooleanToggle(label("Show GC time delta"), working.showGc)
             .setDefaultValue(defaults.showGc)
-            .setTooltip(Component.literal("Show garbage collection pauses (ms)."))
+            .setTooltip(Component.literal("Show GC time accumulated since the previous update."))
             .setSaveConsumer(v -> working.showGc = v)
             .build());
 
