@@ -71,7 +71,7 @@ CSV files can be opened in Excel, Google Sheets, or any analysis tool as well as
 
 ## Compatibility
 
-- Minecraft: **1.21.x*
+- Minecraft: **1.21.9–1.21.11**
 - Loader: **Fabric**
 - Required:
     - **Fabric API**

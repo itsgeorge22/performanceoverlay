@@ -6,7 +6,7 @@ plugins {
 group = project.maven_group
 version = project.mod_version
 
-def mcMajorMinor = "1.21.x"
+def mcMajorMinor = "1.21.9-1.21.11"
 def jarBase = "performanceoverlay-${project.mod_version}+mc${mcMajorMinor}-fabric"
 
 base {

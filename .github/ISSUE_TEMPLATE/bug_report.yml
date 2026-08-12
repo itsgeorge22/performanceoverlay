@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Before reporting:
-        - Confirm you're on **Minecraft 1.21.x (Fabric)**
+        - Confirm you're on **Minecraft 1.21.9–1.21.11 (Fabric)**
         - Confirm **Fabric API** and **Cloth Config** are installed
         - Try reproducing with only Performance Overlay + dependencies
 
@@ -31,7 +31,7 @@ body:
     id: mod_version
     attributes:
       label: Performance Overlay version
-      placeholder: "1.0.0"
+      placeholder: "1.0.1"
     validations:
       required: true
 
@@ -85,7 +85,7 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: I am on Minecraft 1.21.x (Fabric)
+        - label: I am on Minecraft 1.21.9–1.21.11 (Fabric)
           required: true
         - label: I have Fabric API installed
           required: true

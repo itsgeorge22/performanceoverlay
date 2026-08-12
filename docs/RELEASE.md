@@ -5,10 +5,10 @@
 - Bump mod_version in gradle.properties
 - (Recommended) Build: ./gradlew clean build
 - Test:
-  - earliest 1.21.x
-  - one mid 1.21.x
-  - latest 1.21.x
-- Verify overlay, layouts, benchmark, CSV/TSV output
+  - 1.21.9
+  - 1.21.10
+  - 1.21.11
+- Verify overlay, layouts, benchmark, CSV output
 
 ## Release
 - git add CHANGELOG.md gradle.properties
@@ -18,4 +18,4 @@
 - git push origin v1.x.x
 - Download JAR from GitHub Release assets
 - Upload single JAR to Modrinth (Version number = 1.x.x)
-- Select all supported 1.21.x versions
+- Select Minecraft versions 1.21.9, 1.21.10, and 1.21.11

@@ -1,0 +1,247 @@
+# ARCHITECTURE.md
+
+## Scope
+
+This document describes the confirmed architecture of the current Performance Overlay repository snapshot.
+
+Performance Overlay is a Fabric client-only mod. Runtime behavior is small, static, and event-driven.
+
+## Source layout
+
+Main runtime code is under:
+
+```text
+src/client/java/com/itsgeorge/performanceoverlay/
+```
+
+Important classes:
+
+- `PerformanceOverlayClient` — Fabric client entry point and runtime orchestration.
+- `FpsTracker` — frame sampling, rolling history, metric calculation, cached display snapshots, benchmark capture/export, GC sampling, and memory sampling.
+- `OverlayRenderer` — overlay measurement, anchoring, scaling, and text drawing.
+- `OverlayConfig` — mutable configuration model and enums.
+- `ConfigIO` — Gson JSON persistence.
+- `PerformanceOverlayConfigScreen` — Cloth Config UI.
+- `PerformanceOverlayModMenu` — Mod Menu integration.
+
+The repository also contains example mixin source/config remnants. `fabric.mod.json` currently declares no `mixins` property, so those mixins are not registered by the mod metadata.
+
+## Runtime initialization
+
+`PerformanceOverlayClient.onInitializeClient()`:
+
+1. Loads `OverlayConfig` through `ConfigIO`.
+2. Creates one `FpsTracker`.
+3. Registers four key bindings.
+4. Registers an `END_CLIENT_TICK` callback for user actions and benchmark lifecycle control.
+5. Attaches the Performance Overlay HUD element immediately before vanilla chat.
+
+## Runtime flow
+
+### HUD/render path
+
+```text
+Fabric HUD callback
+    -> return immediately if config.enabled == false
+    -> read Minecraft pause state
+    -> FpsTracker.onFrame(paused)
+        -> measure callback interval
+        -> push/prune rolling frame history
+        -> refresh due cached metrics
+        -> capture/write benchmark frame if active
+        -> poll GC/memory when due
+        -> rebuild cached Snapshot if a visible/cached metric changed
+    -> OverlayRenderer.render(..., tracker.getSnapshot())
+```
+
+Sampling is therefore coupled to execution of the enabled HUD callback.
+
+All current frame measurement, rolling metric work, benchmark per-frame work, snapshot generation, and overlay rendering are executed synchronously on the client/render path used by the HUD callback.
+
+### Client-tick path
+
+```text
+END_CLIENT_TICK
+    -> benchmark progress action bar
+    -> benchmark auto-stop
+    -> F7 overlay toggle
+    -> F9 rolling-stat reset
+    -> F10 benchmark start/stop
+    -> F8 layout cycle
+```
+
+Configuration changes made through these key actions are persisted with `ConfigIO.save()` where applicable.
+
+## Key bindings
+
+Default keys:
+
+- F7 — enable/disable overlay
+- F8 — cycle text layout
+- F9 — reset rolling statistics
+- F10 — start/stop benchmark
+
+Layouts cycle:
+
+```text
+ONE_LINE -> THREE_LINES -> COLUMN -> ONE_LINE
+```
+
+Starting a benchmark through F10 is rejected when the overlay is disabled.
+
+When F7 disables the overlay during an active benchmark, the tracker is told to stop the benchmark and local auto-stop/progress state is cleared.
+
+## `FpsTracker`
+
+`FpsTracker` is the central measurement component.
+
+It currently owns four related responsibilities:
+
+1. frame interval collection,
+2. rolling metric calculation and display cache,
+3. benchmark capture/export/summary,
+4. GC and JVM heap sampling.
+
+### Rolling storage
+
+Parallel circular arrays store:
+
+```text
+timeNs[]   sample timestamp
+frameNs[]  sampled callback interval
+scratch[]  reusable calculation workspace
+```
+
+History is time-pruned using the largest configured metric window. Capacity is also bounded by a sample-count heuristic documented in `METRICS.md`.
+
+### Cached metrics
+
+Metrics are not recalculated every frame. Each metric has its own last-update timestamp and refresh cadence.
+
+`Snapshot` is a record containing formatted display lines, line count, and one color for the whole overlay. Its `String[]` line array is exposed by the record accessor and is therefore not deeply immutable.
+
+Snapshot text is rebuilt when cached values change.
+
+### Benchmark state
+
+Benchmark state is stored directly in `FpsTracker`:
+
+- active flag,
+- start timestamp,
+- `BufferedWriter`,
+- file name/path,
+- frame/write counters,
+- dedicated full-run frame array,
+- retained total duration and maximum frame,
+- last completed summary.
+
+Benchmark CSV formatting and `BufferedWriter.write()` are currently performed inside `onFrame()`.
+
+The writer is flushed every 120 logged frames and closed on normal stop.
+
+## Benchmark files
+
+Benchmark files are created under:
+
+```text
+<config-dir>/performanceoverlay/benchmarks/
+```
+
+with names of the form:
+
+```text
+benchmark_yyyyMMdd_HHmmss.csv
+```
+
+The file contains start-time metadata, per-frame CSV rows, then a summary footer on normal stop.
+
+The start metadata currently records duration, pause handling, stutter threshold, average/low windows, and FPS smoothing window. It does not record every setting that can affect final summary semantics.
+
+## Rendering
+
+`OverlayRenderer.render()`:
+
+1. obtains scaled GUI dimensions and the Minecraft font,
+2. clamps configured scale to 0.5–2.0,
+3. measures every non-empty snapshot line with `font.width()`,
+4. calculates total rendered dimensions,
+5. computes an anchor from `OverlayPosition`, offsets, and dimensions,
+6. applies a pose scale,
+7. draws each line with shadow,
+8. restores the pose.
+
+Supported anchors:
+
+- top-left
+- top-center
+- top-right
+- bottom-left
+- bottom-center
+- bottom-right
+
+The renderer currently has no background panel or clipping stage. One threshold-derived color is applied to every line in the snapshot.
+
+The HUD element is attached before vanilla chat so chat is rendered after it.
+
+## Configuration
+
+`OverlayConfig` is a mutable public-field configuration object.
+
+It contains:
+
+- overlay enable state,
+- metric visibility,
+- position/layout/scale,
+- presets,
+- benchmark duration,
+- metric refresh intervals,
+- metric history windows,
+- stutter settings,
+- low calculation method,
+- pause handling,
+- threshold color configuration.
+
+`ConfigIO` persists this object as pretty-printed Gson JSON at:
+
+```text
+<config-dir>/performanceoverlay.json
+```
+
+If the file does not exist, defaults are created and saved.
+
+Current persistence behavior is simple: reads and writes use the whole JSON file, write I/O errors are ignored, and no schema migration or post-load validation layer is implemented.
+
+## Threading model
+
+No worker thread or asynchronous benchmark writer is present in the current implementation.
+
+Operational measurement and export work occurs through Fabric callbacks on the Minecraft client side. In particular, benchmark row construction and file writes are synchronous with frame sampling.
+
+Do not assume thread safety for `FpsTracker`, `OverlayConfig`, or benchmark state; the current design relies on its client-side callback usage rather than synchronization primitives.
+
+## Build/runtime metadata
+
+Confirmed from the repository snapshot:
+
+- Java 21
+- Minecraft build target: 1.21.11
+- Fabric Loader: 0.18.4
+- Fabric API: 0.141.1+1.21.11
+- mod version: 1.0.1
+- declared Minecraft compatibility in `fabric.mod.json`: `>=1.21.9 <=1.21.11`
+- environment: `client`
+- Cloth Config is required
+- Mod Menu is recommended
+
+The build targets Minecraft 1.21.11; the same JAR has been manually verified on Minecraft 1.21.9 and 1.21.10. Minecraft 1.21.8 fails during client initialization because its key-binding API is incompatible.
+
+## Current architectural constraints / known risks
+
+These are confirmed characteristics of the current implementation, not automatically approved redesign targets:
+
+- Frame measurement depends on the enabled HUD callback.
+- Benchmark per-frame CSV formatting and writes occur on the measurement/render path.
+- Rolling benchmark CSV columns reuse cached overlay metrics.
+- Some cached metric calculation is conditional on visibility or color-target needs.
+- Benchmark full-run summary settings are not fully immutable for the duration of a run.
+- No automated test source set is present in the uploaded repository snapshot.

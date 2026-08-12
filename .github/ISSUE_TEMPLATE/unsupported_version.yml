@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Performance Overlay supports:
-        - **Minecraft: 1.21.x**
+        - **Minecraft: 1.21.9–1.21.11**
         - **Loader: Fabric**
         - Requires: **Fabric API**, **Cloth Config**
 
