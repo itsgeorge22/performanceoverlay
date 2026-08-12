@@ -216,6 +216,16 @@ public final class FpsTracker {
     }
 
     BenchmarkStatus startBenchmark(Path dir, LocalDateTime now, LongSupplier nanoTime) {
+        return startBenchmark(dir, now, nanoTime, getModVersion(), getMinecraftVersion());
+    }
+
+    BenchmarkStatus startBenchmark(
+            Path dir,
+            LocalDateTime now,
+            LongSupplier nanoTime,
+            String modVersion,
+            String minecraftVersion
+    ) {
         // Defensive: close any leftover writer
         if (benchmarkWriter != null) {
             try {
@@ -239,8 +249,8 @@ public final class FpsTracker {
 
             benchmarkWriter.write("# PerformanceOverlay Benchmark\n");
             benchmarkWriter.write("# Date: " + now.format(TS_HUMAN) + "\n");
-            benchmarkWriter.write("# ModVersion: " + getModVersion() + "\n");
-            benchmarkWriter.write("# Minecraft: " + getMinecraftVersion() + "\n");
+            benchmarkWriter.write("# ModVersion: " + modVersion + "\n");
+            benchmarkWriter.write("# Minecraft: " + minecraftVersion + "\n");
             benchmarkWriter.write("# DurationSec: " + settings.autoBenchmarkDurationSec() + "\n");
             benchmarkWriter.write("# PauseHandling: " + settings.pauseHandling().name() + "\n");
             benchmarkWriter.write("# LowMethod: " + settings.lowMethod().name() + "\n");

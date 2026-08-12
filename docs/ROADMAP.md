@@ -40,7 +40,7 @@ Phase 1 is complete when no known confirmed stability or persistence bugs remain
 - [x] Make benchmark collection independent of overlay visibility.
 - [x] Capture measurement settings when each benchmark starts.
 - [x] Start each benchmark from a fresh frame-timing boundary.
-- [ ] Add benchmark CSV tests for metadata, columns, summaries, and captured settings.
+- [x] Add benchmark CSV tests for metadata, columns, summaries, and captured settings.
 
 ## Phase 3 — Measure and reduce benchmark self-overhead
 
