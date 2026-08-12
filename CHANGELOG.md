@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Moved benchmark CSV formatting and file writing off the measured render path.
 - Made automatic benchmark progress reach 100% and prevented F10 from immediately starting another run.
 - Corrected settings tooltips for hidden-overlay benchmarking and GC time reporting.
 - Fixed configuration presets being overwritten on save and aligned Default with its 10-second average window.

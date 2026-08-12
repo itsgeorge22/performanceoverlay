@@ -234,6 +234,8 @@ The array starts at 6000 samples and doubles up to a hard maximum of 5,000,000 r
 
 CSV logging can continue after this in-memory summary cap is reached, but additional frames are not retained for the final full-run summary.
 
+The current frame's raw and cached numeric values are copied into an immutable row snapshot on the measured path. CSV number formatting and disk writes run on a dedicated background thread through a bounded 4,096-row queue. A full queue aborts the benchmark rather than blocking frame capture.
+
 ## Benchmark CSV row semantics
 
 Columns are:
@@ -263,6 +265,8 @@ The exported rolling metrics are calculated regardless of overlay visibility whi
 GC and memory are sampled before the current benchmark row is written whenever their fixed polling cadence is due. The first benchmark GC value is zero/unavailable unless collection occurs after the run's baseline is captured.
 
 `frame_ms` is the authoritative per-frame measurement. The other columns are derived or periodically sampled context for that frame.
+
+Background writing does not change row values or order: each row contains the values captured during its source frame, even if it is written later.
 
 ## Benchmark settings snapshot
 

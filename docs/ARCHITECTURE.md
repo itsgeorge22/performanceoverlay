@@ -51,14 +51,14 @@ Fabric HUD callback
         -> push/prune rolling frame history
         -> refresh due cached metrics
         -> poll GC/memory when due
-        -> capture/write benchmark frame if active
+        -> queue benchmark frame values if active
         -> rebuild cached Snapshot if a visible/cached metric changed
     -> render Snapshot only if overlay is enabled
 ```
 
 Normal sampling is coupled to the enabled overlay. An active benchmark continues sampling through the HUD callback if the overlay is disabled through F7 or the settings screen.
 
-All current frame measurement, rolling metric work, benchmark per-frame work, snapshot generation, and overlay rendering are executed synchronously on the client/render path used by the HUD callback.
+Frame measurement, rolling metric work, lightweight benchmark value capture, snapshot generation, and overlay rendering are executed synchronously on the client/render path used by the HUD callback. Benchmark CSV formatting and file writes run on a dedicated background writer thread.
 
 ### Client-tick path
 
@@ -134,7 +134,7 @@ Benchmark state is stored directly in `FpsTracker`:
 
 - active flag,
 - start timestamp,
-- `BufferedWriter`,
+- bounded background CSV writer queue,
 - file name/path,
 - frame/write counters,
 - dedicated full-run frame array,
@@ -142,11 +142,11 @@ Benchmark state is stored directly in `FpsTracker`:
 - an immutable snapshot of measurement settings for the active run,
 - last completed summary.
 
-Benchmark CSV formatting and `BufferedWriter.write()` are currently performed inside `onFrame()`.
+Each measured benchmark frame creates one numeric row snapshot and submits it to a bounded 4,096-row queue without waiting. A dedicated daemon thread formats queued values as CSV and writes them in capture order.
 
-The writer is flushed every 120 logged frames and closed on normal stop.
+The background writer is flushed every 120 logged frames. Normal stop waits for the bounded queue to drain, writes the summary footer, flushes, and closes the file before reporting that it was saved. If the queue fills, the benchmark aborts instead of blocking frame rendering.
 
-If a per-frame write fails, the tracker closes the writer, stops the run, and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
+If row submission fails or the background writer reports an I/O failure, the tracker stops the run and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
 
 The Fabric client-stopping event finalizes an active benchmark during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, or game shutdown. Forced process termination, power loss, and crashes that bypass the lifecycle event can still leave a partial file.
 
@@ -230,11 +230,9 @@ Default, Responsive, and Smooth presets apply their complete controlled value se
 
 ## Threading model
 
-No worker thread or asynchronous benchmark writer is present in the current implementation.
+A dedicated daemon thread owns benchmark CSV row formatting and file writes. The client/render path communicates with it through a bounded thread-safe queue. Benchmark start writes and flushes metadata before measurement begins; benchmark stop waits for queued rows and finalization before reporting success.
 
-Operational measurement and export work occurs through Fabric callbacks on the Minecraft client side. In particular, benchmark row construction and file writes are synchronous with frame sampling.
-
-Do not assume thread safety for `FpsTracker`, `OverlayConfig`, or benchmark state; the current design relies on its client-side callback usage rather than synchronization primitives.
+`FpsTracker`, `OverlayConfig`, and other benchmark state remain client-thread-owned. Only immutable numeric row snapshots cross to the writer thread.
 
 ## Build/runtime metadata
 
@@ -257,6 +255,6 @@ The build targets Minecraft 1.21.11; the same JAR has been manually verified on 
 These are confirmed characteristics of the current implementation, not automatically approved redesign targets:
 
 - Normal frame measurement depends on the enabled HUD callback; an active benchmark keeps the callback's measurement path running without drawing the overlay.
-- Benchmark per-frame CSV formatting and writes occur on the measurement/render path.
+- Benchmark capture still allocates one numeric row snapshot and performs one non-blocking queue submission per measured frame.
 - Rolling benchmark CSV columns reuse cached overlay metrics.
 - Outside benchmarks, some cached metric calculation is conditional on visibility or color-target needs.

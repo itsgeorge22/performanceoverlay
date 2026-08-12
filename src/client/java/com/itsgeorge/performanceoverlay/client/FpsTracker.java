@@ -73,10 +73,9 @@ public final class FpsTracker {
     private boolean benchmarkActive = false;
     private BenchmarkSettings benchmarkSettings = null;
     private long benchmarkStartNs = 0;
-    private BufferedWriter benchmarkWriter = null;
+    private BenchmarkCsvWriter benchmarkWriter = null;
     private String benchmarkFileName = "";
     private String benchmarkFilePath = "";
-    private int benchmarkFlushCounter = 0;
     private long benchmarkFrameCount = 0;
 
     private boolean benchmarkHadWriteError = false;
@@ -172,6 +171,13 @@ public final class FpsTracker {
     }
 
     public BenchmarkStatus consumePendingBenchmarkStatus() {
+        if (pendingBenchmarkStatus == null && benchmarkActive && benchmarkWriter != null) {
+            IOException writerFailure = benchmarkWriter.failure();
+            if (writerFailure != null) {
+                handleBenchmarkWriteFailure(writerFailure);
+            }
+        }
+
         BenchmarkStatus status = pendingBenchmarkStatus;
         pendingBenchmarkStatus = null;
         if (status != null) {
@@ -228,49 +234,50 @@ public final class FpsTracker {
     ) {
         // Defensive: close any leftover writer
         if (benchmarkWriter != null) {
-            try {
-                benchmarkWriter.close();
-            } catch (IOException ignored) {
-            }
+            benchmarkWriter.abort();
             benchmarkWriter = null;
         }
 
         benchmarkHadWriteError = false;
         pendingBenchmarkStatus = null;
         BenchmarkSettings settings = liveSettings;
+        BufferedWriter outputWriter = null;
 
         try {
             BenchmarkOutput output = createBenchmarkOutput(dir, now);
             Path file = output.path();
-            benchmarkWriter = output.writer();
+            outputWriter = output.writer();
 
             benchmarkFileName = file.getFileName().toString();
             benchmarkFilePath = file.toAbsolutePath().toString();
 
-            benchmarkWriter.write("# PerformanceOverlay Benchmark\n");
-            benchmarkWriter.write("# Date: " + now.format(TS_HUMAN) + "\n");
-            benchmarkWriter.write("# ModVersion: " + modVersion + "\n");
-            benchmarkWriter.write("# Minecraft: " + minecraftVersion + "\n");
-            benchmarkWriter.write("# DurationSec: " + settings.autoBenchmarkDurationSec() + "\n");
-            benchmarkWriter.write("# PauseHandling: " + settings.pauseHandling().name() + "\n");
-            benchmarkWriter.write("# LowMethod: " + settings.lowMethod().name() + "\n");
-            benchmarkWriter.write("# StutterThresholdMs: " + settings.stutterThresholdMs() + "\n");
-            benchmarkWriter.write("# StutterWindowSec: " + settings.stutterWindowSec() + "\n");
-            benchmarkWriter.write("# FpsWindowMs: " + settings.fpsWindowMs() + "\n");
-            benchmarkWriter.write("# AvgWindowSec: " + settings.avgWindowSec() + "\n");
-            benchmarkWriter.write("# Low1WindowSec: " + settings.low1WindowSec() + "\n");
-            benchmarkWriter.write("# Low01WindowSec: " + settings.low01WindowSec() + "\n");
-            benchmarkWriter.write("# FpsUpdateMs: " + settings.fpsUpdateMs() + "\n");
-            benchmarkWriter.write("# FrametimeUpdateMs: " + settings.frametimeUpdateMs() + "\n");
-            benchmarkWriter.write("# AvgUpdateMs: " + settings.avgUpdateMs() + "\n");
-            benchmarkWriter.write("# Low1UpdateMs: " + settings.low1UpdateMs() + "\n");
-            benchmarkWriter.write("# Low01UpdateMs: " + settings.low01UpdateMs() + "\n");
-            benchmarkWriter.write("# StuttersUpdateMs: " + settings.stuttersUpdateMs() + "\n");
-            benchmarkWriter.write("# GcMetric: TIME_DELTA_SINCE_PREVIOUS_POLL\n");
+            outputWriter.write("# PerformanceOverlay Benchmark\n");
+            outputWriter.write("# Date: " + now.format(TS_HUMAN) + "\n");
+            outputWriter.write("# ModVersion: " + modVersion + "\n");
+            outputWriter.write("# Minecraft: " + minecraftVersion + "\n");
+            outputWriter.write("# DurationSec: " + settings.autoBenchmarkDurationSec() + "\n");
+            outputWriter.write("# PauseHandling: " + settings.pauseHandling().name() + "\n");
+            outputWriter.write("# LowMethod: " + settings.lowMethod().name() + "\n");
+            outputWriter.write("# StutterThresholdMs: " + settings.stutterThresholdMs() + "\n");
+            outputWriter.write("# StutterWindowSec: " + settings.stutterWindowSec() + "\n");
+            outputWriter.write("# FpsWindowMs: " + settings.fpsWindowMs() + "\n");
+            outputWriter.write("# AvgWindowSec: " + settings.avgWindowSec() + "\n");
+            outputWriter.write("# Low1WindowSec: " + settings.low1WindowSec() + "\n");
+            outputWriter.write("# Low01WindowSec: " + settings.low01WindowSec() + "\n");
+            outputWriter.write("# FpsUpdateMs: " + settings.fpsUpdateMs() + "\n");
+            outputWriter.write("# FrametimeUpdateMs: " + settings.frametimeUpdateMs() + "\n");
+            outputWriter.write("# AvgUpdateMs: " + settings.avgUpdateMs() + "\n");
+            outputWriter.write("# Low1UpdateMs: " + settings.low1UpdateMs() + "\n");
+            outputWriter.write("# Low01UpdateMs: " + settings.low01UpdateMs() + "\n");
+            outputWriter.write("# StuttersUpdateMs: " + settings.stuttersUpdateMs() + "\n");
+            outputWriter.write("# GcMetric: TIME_DELTA_SINCE_PREVIOUS_POLL\n");
 
-            benchmarkWriter.write(
+            outputWriter.write(
                     "elapsed_ms,frame_ms,inst_fps,fps_smoothed,avg_fps,low1_fps,low01_fps,stutters,stutter_percent,max_spike_ms,gc_time_delta_ms,mem_used_mb,mem_max_mb\n"
             );
+            outputWriter.flush();
+            benchmarkWriter = new BenchmarkCsvWriter(outputWriter);
+            outputWriter = null; // Ownership transferred to the background writer.
 
             benchmarkSettings = settings;
             ensureCapacity(settings);
@@ -279,7 +286,6 @@ public final class FpsTracker {
 
             benchmarkActive = true;
             benchmarkStartNs = nanoTime.getAsLong();
-            benchmarkFlushCounter = 0;
             benchmarkFrameCount = 0;
 
             benchmarkFramesSize = 0;
@@ -296,6 +302,12 @@ public final class FpsTracker {
         } catch (IOException e) {
             String failedName = benchmarkFileName;
             String failedPath = benchmarkFilePath;
+            if (outputWriter != null) {
+                try {
+                    outputWriter.close();
+                } catch (IOException ignored) {
+                }
+            }
             clearBenchmarkState();
             return BenchmarkStatus.error(describeBenchmarkIoError(e), failedName, failedPath);
         }
@@ -312,15 +324,12 @@ public final class FpsTracker {
             lastBenchmarkSummary = buildBenchmarkSummaryFullRun(settings);
 
             if (benchmarkWriter != null) {
-                writeBenchmarkFooter(
-                        benchmarkWriter,
+                benchmarkWriter.finish(
                         endReason,
                         benchmarkFrameCount,
                         benchmarkFramesSize,
                         lastBenchmarkSummary
                 );
-                benchmarkWriter.flush();
-                benchmarkWriter.close();
             }
 
             // FIX #1: on successful stop, clear the write-error flag
@@ -330,7 +339,7 @@ public final class FpsTracker {
 
             return BenchmarkStatus.stopped(name, path);
         } catch (IOException e) {
-            closeBenchmarkWriterQuietly();
+            abortBenchmarkWriter();
             clearBenchmarkStateKeepSummary();
             return BenchmarkStatus.error(describeBenchmarkIoError(e), name, path);
         }
@@ -341,10 +350,7 @@ public final class FpsTracker {
         benchmarkHadWriteError = false;
 
         if (benchmarkWriter != null) {
-            try {
-                benchmarkWriter.close();
-            } catch (IOException ignored) {
-            }
+            benchmarkWriter.abort();
         }
 
         benchmarkWriter = null;
@@ -353,7 +359,6 @@ public final class FpsTracker {
         benchmarkFileName = "";
         benchmarkFilePath = "";
         benchmarkStartNs = 0;
-        benchmarkFlushCounter = 0;
         benchmarkFrameCount = 0;
 
         benchmarkFramesSize = 0;
@@ -372,7 +377,6 @@ public final class FpsTracker {
         benchmarkFileName = "";
         benchmarkFilePath = "";
         benchmarkStartNs = 0;
-        benchmarkFlushCounter = 0;
         benchmarkFrameCount = 0;
 
         benchmarkFramesSize = 0;
@@ -510,39 +514,32 @@ public final class FpsTracker {
             changed = true;
         }
 
-        // Benchmark write (per-frame)
+        // Benchmark capture (formatting and file I/O run on the benchmark writer thread)
         if (benchmarkActive && benchmarkWriter != null) {
             try {
                 long elapsedMs = (nowNs - benchmarkStartNs) / NS_PER_MS;
-                double frameMs = (double) dtNs / (double) NS_PER_MS;
-                double instFps = (double) NS_PER_SEC / (double) dtNs;
 
                 // Collect full-run frametimes for end-of-run summary
                 benchPushFrame(dtNs);
 
-                benchmarkWriter.write(
-                        elapsedMs + "," +
-                                ms3(frameMs) + "," +
-                                f1(instFps) + "," +
-                                f1(cachedFps) + "," +
-                                f1(cachedAvg) + "," +
-                                f1(cachedLow1) + "," +
-                                f1(cachedLow01) + "," +
-                                cachedStutters + "," +
-                                cachedStutterPercent + "," +
-                                ms3(cachedMaxSpikeMs) + "," +
-                                ms1((double) cachedGcTimeDeltaMs) + "," +
-                                cachedMemUsedMb + "," +
-                                cachedMemMaxMb + "\n"
+                benchmarkWriter.enqueue(
+                        new BenchmarkCsvWriter.BenchmarkRow(
+                                elapsedMs,
+                                dtNs,
+                                cachedFps,
+                                cachedAvg,
+                                cachedLow1,
+                                cachedLow01,
+                                cachedStutters,
+                                cachedStutterPercent,
+                                cachedMaxSpikeMs,
+                                cachedGcTimeDeltaMs,
+                                cachedMemUsedMb,
+                                cachedMemMaxMb
+                        )
                 );
 
                 benchmarkFrameCount++;
-
-                benchmarkFlushCounter++;
-                if (benchmarkFlushCounter >= 120) {
-                    benchmarkWriter.flush();
-                    benchmarkFlushCounter = 0;
-                }
             } catch (IOException e) {
                 handleBenchmarkWriteFailure(e);
             }
@@ -977,7 +974,7 @@ public final class FpsTracker {
         return (double) ns / (double) NS_PER_MS;
     }
 
-    private static String ms1(double ms) {
+    static String ms1(double ms) {
         if (ms <= 0 || Double.isNaN(ms) || Double.isInfinite(ms)) {
             return "0.0";
         }
@@ -988,7 +985,7 @@ public final class FpsTracker {
         return whole + "." + frac;
     }
 
-    private static String ms3(double ms) {
+    static String ms3(double ms) {
         long t = Math.round(ms * 1000.0);
         long whole = t / 1000;
         long frac = Math.abs(t % 1000);
@@ -1001,7 +998,7 @@ public final class FpsTracker {
         return whole + "." + f;
     }
 
-    private static String f1(double v) {
+    static String f1(double v) {
         if (v <= 0 || Double.isNaN(v) || Double.isInfinite(v)) {
             return "0.0";
         }
@@ -1022,19 +1019,15 @@ public final class FpsTracker {
                 path
         );
 
-        closeBenchmarkWriterQuietly();
+        abortBenchmarkWriter();
         clearBenchmarkStateKeepSummary();
     }
 
-    private void closeBenchmarkWriterQuietly() {
+    private void abortBenchmarkWriter() {
         if (benchmarkWriter == null) {
             return;
         }
-
-        try {
-            benchmarkWriter.close();
-        } catch (IOException ignored) {
-        }
+        benchmarkWriter.abort();
         benchmarkWriter = null;
     }
 

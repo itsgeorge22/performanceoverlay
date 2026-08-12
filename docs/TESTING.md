@@ -14,7 +14,7 @@ Run only automated tests:
 .\gradlew.bat test
 ```
 
-The automated suite covers benchmark lifecycle and key guarding, CSV metadata and columns, captured settings, filename collision, write-failure and shutdown-footer handling, complete summary calculations and formatting, all three pause modes, configuration presets, configuration fallback and validation, and deterministic metric calculations for average FPS, frametime, percentile lows, mean-worst lows, stutter threshold inclusion and percentage, maximum spike, reset behavior, and rolling-window boundary inclusion.
+The automated suite covers benchmark lifecycle and key guarding, background CSV formatting, bounded-queue overflow, writer failures, CSV metadata and columns, captured settings, filename collision, shutdown-footer handling, complete summary calculations and formatting, all three pause modes, configuration presets, configuration fallback and validation, and deterministic metric calculations for average FPS, frametime, percentile lows, mean-worst lows, stutter threshold inclusion and percentage, maximum spike, reset behavior, and rolling-window boundary inclusion.
 
 ## Manual smoke test
 
@@ -24,3 +24,4 @@ After metric or benchmark changes:
 2. Confirm the overlay appears and updates.
 3. Run a short benchmark with F10.
 4. Confirm the CSV is saved and ends with `# SUMMARY`.
+5. Confirm the per-frame rows appear before the summary and can be opened normally in Excel or Google Sheets.
