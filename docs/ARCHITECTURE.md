@@ -91,7 +91,7 @@ ONE_LINE -> THREE_LINES -> COLUMN -> ONE_LINE
 
 F10 starts or stops benchmarks regardless of whether the overlay is visible.
 
-F9 is blocked while a benchmark is active because resetting only the rolling statistics would make the CSV's rolling columns inconsistent with its uninterrupted full-run data. It works normally after the benchmark ends.
+F9 does nothing while the overlay is disabled. While the overlay is visible, F9 is blocked with a warning during an active benchmark because resetting only the rolling statistics would make the CSV's rolling columns inconsistent with its uninterrupted full-run data. It works normally after the benchmark ends.
 
 Disabling the overlay through F7 or the settings screen hides only the display during an active benchmark. Sampling, progress, F10 manual stop, and automatic stop continue normally.
 

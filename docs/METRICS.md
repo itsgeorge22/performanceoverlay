@@ -299,4 +299,4 @@ Maximum spike is the maximum retained benchmark frame duration.
 
 It does not clear an active benchmark's dedicated full-run frame collection.
 
-The F9 reset key is therefore blocked while a benchmark is active. It becomes available again after the benchmark stops.
+The F9 reset key does nothing while the overlay is disabled. While the overlay is visible, it is blocked during an active benchmark and becomes available again after the benchmark stops.

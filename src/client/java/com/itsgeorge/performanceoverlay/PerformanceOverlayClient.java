@@ -164,6 +164,10 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             }
 
             while (resetKey.consumeClick()) {
+                if (!config.enabled) {
+                    continue;
+                }
+
                 if (tracker.isBenchmarkActive()) {
                     showActionbarPlain(
                             client,
