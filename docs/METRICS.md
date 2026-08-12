@@ -172,11 +172,11 @@ currentTotalGcMs = sum(all collector cumulative collection times)
 gcDeltaMs = max(0, currentTotalGcMs - previousTotalGcMs)
 ```
 
-The displayed value is therefore aggregate JVM GC collection time accumulated between polls. It is not the duration of the most recent individual GC pause.
+The overlay uses the compact label `GC`, while the settings call it `GC time delta` and benchmark CSV files name it `gc_time_delta_ms`. It is aggregate JVM GC collection time accumulated since the previous poll, not the duration of an individual GC pause.
 
 The cumulative GC baseline is initialized when the tracker is created and reset when each benchmark starts. Benchmark GC values therefore exclude collection time accumulated before that run.
 
-A non-positive result is stored internally as unavailable and currently renders as `GC: NaN`.
+When no GC time accumulated during the interval, the value is `0ms`.
 
 ## Memory metric
 
@@ -249,7 +249,7 @@ low01_fps
 stutters
 stutter_percent
 max_spike_ms
-gc_pause_ms
+gc_time_delta_ms
 mem_used_mb
 mem_max_mb
 ```

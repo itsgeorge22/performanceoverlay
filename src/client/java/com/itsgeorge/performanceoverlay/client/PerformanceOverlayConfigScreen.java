@@ -115,7 +115,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setTooltip(Component.literal("Show max frametime spike (ms) within the stutter window."))
                 .setSaveConsumer(v -> working.showMaxSpike = v)
                 .build());
-        overlay.addEntry(eb.startBooleanToggle(label("Show GC pauses"), working.showGc)
+        overlay.addEntry(eb.startBooleanToggle(label("Show GC time delta"), working.showGc)
             .setDefaultValue(defaults.showGc)
             .setTooltip(Component.literal("Show garbage collection pauses (ms)."))
             .setSaveConsumer(v -> working.showGc = v)

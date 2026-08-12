@@ -16,7 +16,7 @@ The overlay updates in real time and displays:
 - **Frametime**
 - **Stutter count**
 - **Worst frame spike**
-- **GC pauses**
+- **GC time delta**
 - **Memory usage**
 
 All metrics are designed for **real performance analysis**, not vanity numbers.

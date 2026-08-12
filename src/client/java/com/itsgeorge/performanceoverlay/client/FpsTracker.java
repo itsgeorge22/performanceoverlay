@@ -57,7 +57,7 @@ public final class FpsTracker {
     private boolean wasPaused = false;
 
     // GC / Memory
-    private long cachedGcPauseMs = 0;
+    private long cachedGcTimeDeltaMs = 0;
     private long lastGcUpdateNs = 0;
 
     private long cachedMemUsedMb = 0;
@@ -129,7 +129,7 @@ public final class FpsTracker {
         cachedStutterPercent = 0;
         cachedMaxSpikeMs = 0;
 
-        cachedGcPauseMs = -1;
+        cachedGcTimeDeltaMs = 0;
         lastGcUpdateNs = 0;
 
         cachedMemUsedMb = 0;
@@ -232,9 +232,10 @@ public final class FpsTracker {
             benchmarkWriter.write("# Low1UpdateMs: " + settings.low1UpdateMs() + "\n");
             benchmarkWriter.write("# Low01UpdateMs: " + settings.low01UpdateMs() + "\n");
             benchmarkWriter.write("# StuttersUpdateMs: " + settings.stuttersUpdateMs() + "\n");
+            benchmarkWriter.write("# GcMetric: TIME_DELTA_SINCE_PREVIOUS_POLL\n");
 
             benchmarkWriter.write(
-                    "elapsed_ms,frame_ms,inst_fps,fps_smoothed,avg_fps,low1_fps,low01_fps,stutters,stutter_percent,max_spike_ms,gc_pause_ms,mem_used_mb,mem_max_mb\n"
+                    "elapsed_ms,frame_ms,inst_fps,fps_smoothed,avg_fps,low1_fps,low01_fps,stutters,stutter_percent,max_spike_ms,gc_time_delta_ms,mem_used_mb,mem_max_mb\n"
             );
 
             benchmarkSettings = settings;
@@ -455,8 +456,7 @@ public final class FpsTracker {
 
         // GC collection time (once per second)
         if ((benchmarkActive || config.showGc) && due(nowNs, lastGcUpdateNs, 1000)) {
-            long gcMs = readLastGcPauseMs();
-            cachedGcPauseMs = (gcMs > 0) ? gcMs : -1;
+            cachedGcTimeDeltaMs = readGcTimeDeltaMs();
             lastGcUpdateNs = nowNs;
             changed = true;
         }
@@ -494,7 +494,7 @@ public final class FpsTracker {
                                 cachedStutters + "," +
                                 cachedStutterPercent + "," +
                                 ms3(cachedMaxSpikeMs) + "," +
-                                ms1((double) cachedGcPauseMs) + "," +
+                                ms1((double) cachedGcTimeDeltaMs) + "," +
                                 cachedMemUsedMb + "," +
                                 cachedMemMaxMb + "\n"
                 );
@@ -557,7 +557,7 @@ public final class FpsTracker {
             }
             if (config.showGc) {
                 appendSep(sb);
-                sb.append("GC: ").append(cachedGcPauseMs > 0 ? cachedGcPauseMs + "ms" : "NaN");
+                sb.append("GC: ").append(cachedGcTimeDeltaMs).append("ms");
             }
             if (config.showMemory) {
                 appendSep(sb);
@@ -615,7 +615,7 @@ public final class FpsTracker {
             // --- LINE 3 ---
             if (config.showGc) {
                 appendSep(c);
-                c.append("GC: ").append(cachedGcPauseMs > 0 ? cachedGcPauseMs + "ms" : "NaN");
+                c.append("GC: ").append(cachedGcTimeDeltaMs).append("ms");
             }
             if (config.showMemory) {
                 appendSep(c);
@@ -666,7 +666,7 @@ public final class FpsTracker {
             lines[n++] = "FT: " + ms1(cachedFtMs) + "ms";
         }
         if (config.showGc) {
-            lines[n++] = "GC: " + (cachedGcPauseMs > 0 ? cachedGcPauseMs + "ms" : "NaN");
+            lines[n++] = "GC: " + cachedGcTimeDeltaMs + "ms";
         }
         if (config.showMemory) {
             lines[n++] = "Mem: " + cachedMemUsedMb + " / " + cachedMemMaxMb + "M";
@@ -1296,7 +1296,7 @@ public final class FpsTracker {
         lastTotalGcTimeMs = readTotalGcTimeMs();
     }
 
-    private long readLastGcPauseMs() {
+    private long readGcTimeDeltaMs() {
         long total = readTotalGcTimeMs();
         long delta = total - lastTotalGcTimeMs;
         lastTotalGcTimeMs = total;
