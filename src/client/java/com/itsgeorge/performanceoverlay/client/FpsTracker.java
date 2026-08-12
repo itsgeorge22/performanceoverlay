@@ -444,7 +444,7 @@ public final class FpsTracker {
             int frames = w.count;
 
             cachedStutters = countAboveThreshold(nowNs, windowNs, thresholdNs);
-            cachedStutterPercent = (frames > 0) ? (int) Math.round((cachedStutters * 100.0) / frames) : 0;
+            cachedStutterPercent = calculateStutterPercent(cachedStutters, frames);
 
             long maxFrameNs = maxFrameInWindow(nowNs, windowNs);
             cachedMaxSpikeMs = nsToMs(maxFrameNs);
@@ -726,7 +726,7 @@ public final class FpsTracker {
         return new Smoothed(fps, ftMs);
     }
 
-    private double lowValue(long nowNs, long windowNs, double worstPercent, OverlayConfig.LowMethod lowMethod) {
+    double lowValue(long nowNs, long windowNs, double worstPercent, OverlayConfig.LowMethod lowMethod) {
         int n = copyFramesToScratch(nowNs, windowNs);
         if (n <= 0) {
             return 0;
@@ -758,7 +758,7 @@ public final class FpsTracker {
         return idx;
     }
 
-    private int countAboveThreshold(long nowNs, long windowNs, long thresholdNs) {
+    int countAboveThreshold(long nowNs, long windowNs, long thresholdNs) {
         long minNs = nowNs - windowNs;
 
         int cap = frameNs.length;
@@ -777,7 +777,7 @@ public final class FpsTracker {
         return count;
     }
 
-    private long maxFrameInWindow(long nowNs, long windowNs) {
+    long maxFrameInWindow(long nowNs, long windowNs) {
         long minNs = nowNs - windowNs;
 
         int cap = frameNs.length;
@@ -797,7 +797,7 @@ public final class FpsTracker {
         return max;
     }
 
-    private double windowFps(long nowNs, long windowNs) {
+    double windowFps(long nowNs, long windowNs) {
         WindowStats w = windowStats(nowNs, windowNs);
         if (w.count < 2 || w.sumNs <= 0) {
             return 0;
@@ -868,7 +868,7 @@ public final class FpsTracker {
         reset();
     }
 
-    private void push(long tNs, long dtNs) {
+    void push(long tNs, long dtNs) {
         int cap = timeNs.length;
 
         if (size == cap) {
@@ -909,6 +909,10 @@ public final class FpsTracker {
         }
         long intervalNs = (long) intervalMs * NS_PER_MS;
         return nowNs - lastUpdateNs >= intervalNs;
+    }
+
+    static int calculateStutterPercent(int stutters, int frames) {
+        return frames > 0 ? (int) Math.round((stutters * 100.0) / frames) : 0;
     }
 
     private static void appendSep(StringBuilder sb) {
@@ -1123,7 +1127,7 @@ public final class FpsTracker {
                 stutters++;
             }
         }
-        int stutterPercent = (n > 0) ? (int) Math.round((stutters * 100.0) / n) : 0;
+        int stutterPercent = calculateStutterPercent(stutters, n);
 
         double maxSpikeMs = nsToMs(benchmarkMaxFrameNs);
 

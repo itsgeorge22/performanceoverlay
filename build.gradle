@@ -58,6 +58,15 @@ dependencies {
 	modClientRuntimeOnly  "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
 
 	modClientRuntimeOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
+
+	testImplementation sourceSets.client.output
+	testImplementation platform("org.junit:junit-bom:5.13.4")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+tasks.named("test", Test).configure {
+	useJUnitPlatform()
 }
 
 processResources {

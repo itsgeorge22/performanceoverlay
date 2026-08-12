@@ -26,6 +26,8 @@ Important classes:
 
 The repository also contains example mixin source/config remnants. `fabric.mod.json` currently declares no `mixins` property, so those mixins are not registered by the mod metadata.
 
+Automated metric tests are under `src/test/java`. They exercise the production rolling-calculation methods with deterministic frame timestamps and durations through JUnit Jupiter.
+
 ## Runtime initialization
 
 `PerformanceOverlayClient.onInitializeClient()`:
@@ -244,4 +246,3 @@ These are confirmed characteristics of the current implementation, not automatic
 - Benchmark per-frame CSV formatting and writes occur on the measurement/render path.
 - Rolling benchmark CSV columns reuse cached overlay metrics.
 - Outside benchmarks, some cached metric calculation is conditional on visibility or color-target needs.
-- No automated test source set is present in the uploaded repository snapshot.
