@@ -22,6 +22,7 @@ Before changing code:
 - Read `docs/METRICS.md` before changing sampling, aggregation, benchmark export, pause handling, or metric calculations.
 - Read `docs/ARCHITECTURE.md` before changing runtime flow or class responsibilities.
 - Read `docs/TESTING.md` when it exists and follow the validation requirements relevant to the change.
+- Read `docs/ROADMAP.md` before planning new features or selecting the next development task.
 - Treat documentation as a specification only where it describes accepted behavior. If code and documentation disagree, report the discrepancy instead of silently choosing one.
 
 When changing behavior:
@@ -41,6 +42,7 @@ After changing behavior:
 - Add new changelog entries directly under the current `## X.X.X [WIP]` heading, with no blank line after the heading; do not wait until release preparation to reconstruct completed work.
 - Keep changelog entries concise and user-facing. Do not add entries for trivial edits that do not affect the project or its users.
 - Update persistent documentation when the accepted behavior, metric contract, architecture, or testing requirements change.
+- Maintain `docs/ROADMAP.md` as planned work is completed, added, removed, or reprioritized; keep release-specific details in `CHANGELOG.md`.
 - Explicitly call out known limitations that remain relevant to the task.
 
 ## Measurement rules
