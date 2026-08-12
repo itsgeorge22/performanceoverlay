@@ -5,6 +5,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
 public final class OverlayRenderer {
+    private static final WidthCache WIDTH_CACHE = new WidthCache();
+
     private OverlayRenderer() {
     }
 
@@ -27,12 +29,18 @@ public final class OverlayRenderer {
         int lineCount = snapshot.count();
         int lineH = font.lineHeight;
 
-        int maxW = 0;
-        for (int i = 0; i < lineCount; i++) {
-            String line = snapshot.lines()[i];
-            if (line != null && !line.isEmpty()) {
-                maxW = Math.max(maxW, font.width(line));
+        int maxW;
+        if (WIDTH_CACHE.matches(font, snapshot)) {
+            maxW = WIDTH_CACHE.maxWidth();
+        } else {
+            maxW = 0;
+            for (int i = 0; i < lineCount; i++) {
+                String line = snapshot.lines()[i];
+                if (line != null && !line.isEmpty()) {
+                    maxW = Math.max(maxW, font.width(line));
+                }
             }
+            WIDTH_CACHE.update(font, snapshot, maxW);
         }
 
         int spacingPx = (lineCount > 1) ? Math.max(0, cfg.lineSpacingPx) : 0;
@@ -84,5 +92,25 @@ public final class OverlayRenderer {
             return max;
         }
         return v;
+    }
+
+    static final class WidthCache {
+        private Object fontIdentity;
+        private Object snapshotIdentity;
+        private int maxWidth;
+
+        boolean matches(Object font, Object snapshot) {
+            return fontIdentity == font && snapshotIdentity == snapshot;
+        }
+
+        void update(Object font, Object snapshot, int width) {
+            fontIdentity = font;
+            snapshotIdentity = snapshot;
+            maxWidth = width;
+        }
+
+        int maxWidth() {
+            return maxWidth;
+        }
     }
 }

@@ -179,7 +179,7 @@ The CSV writes `gc_time_delta_ms` only on frames with a fresh GC poll. Intermedi
 
 1. obtains scaled GUI dimensions and the Minecraft font,
 2. clamps configured scale to 0.5–2.0,
-3. measures every non-empty snapshot line with `font.width()`,
+3. reuses the cached maximum text width while the snapshot and font instances are unchanged, otherwise measures every non-empty line with `font.width()`,
 4. calculates total rendered dimensions,
 5. computes an anchor from `OverlayPosition`, offsets, and dimensions,
 6. applies a pose scale,
@@ -196,6 +196,8 @@ Supported anchors:
 - bottom-right
 
 The renderer currently has no background panel or clipping stage. One threshold-derived color is applied to every line in the snapshot.
+
+Screen dimensions, scale, spacing, offsets, and anchoring remain live every frame; only the font-dependent maximum line width is cached.
 
 The HUD element is attached before vanilla chat so chat is rendered after it.
 
