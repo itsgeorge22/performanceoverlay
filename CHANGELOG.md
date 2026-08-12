@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Prevented benchmarks started within the same second from overwriting existing CSV files.
 - Standardized configuration labels and replaced internal enum names with readable options.
 - Added validation and safe defaults for malformed, missing, or out-of-range configuration values.
 - Fixed the missing separator before Max Spike in the three-line overlay layout.

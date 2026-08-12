@@ -19,6 +19,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Fix the missing Max Spike separator in the three-line layout.
 - [x] Add validation for loaded configuration values.
 - [x] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.
+- [x] Prevent benchmark filename collisions from overwriting existing CSV files.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.

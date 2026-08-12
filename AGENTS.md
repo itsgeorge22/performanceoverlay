@@ -38,6 +38,7 @@ After changing behavior:
 
 - Validate the affected logic.
 - Tell the user how to manually test the completed change, using concise step-by-step instructions and the expected result.
+- After completing or committing work, tell the user the next recommended task from the current roadmap phase.
 - Update `CHANGELOG.md` in the same piece of work for every meaningful bug fix, feature, behavior change, compatibility change, or performance improvement.
 - Add new changelog entries directly under the current `## X.X.X [WIP]` heading, with no blank line after the heading; do not wait until release preparation to reconstruct completed work.
 - Keep changelog entries concise and user-facing. Do not add entries for trivial edits that do not affect the project or its users.

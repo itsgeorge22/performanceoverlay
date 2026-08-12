@@ -6,8 +6,10 @@ import net.minecraft.SharedConstants;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -203,15 +205,14 @@ public final class FpsTracker {
 
         try {
             Path dir = FabricLoader.getInstance().getConfigDir().resolve("performanceoverlay").resolve("benchmarks");
-            Files.createDirectories(dir);
-
             LocalDateTime now = LocalDateTime.now();
 
-            benchmarkFileName = "benchmark_" + now.format(TS) + ".csv";
-            Path file = dir.resolve(benchmarkFileName);
-            benchmarkFilePath = file.toAbsolutePath().toString();
+            BenchmarkOutput output = createBenchmarkOutput(dir, now);
+            Path file = output.path();
+            benchmarkWriter = output.writer();
 
-            benchmarkWriter = Files.newBufferedWriter(file, StandardCharsets.UTF_8);
+            benchmarkFileName = file.getFileName().toString();
+            benchmarkFilePath = file.toAbsolutePath().toString();
 
             benchmarkWriter.write("# PerformanceOverlay Benchmark\n");
             benchmarkWriter.write("# Date: " + now.format(TS_HUMAN) + "\n");
@@ -984,6 +985,28 @@ public final class FpsTracker {
                 .orElse("unknown");
     }
 
+    static BenchmarkOutput createBenchmarkOutput(Path dir, LocalDateTime timestamp) throws IOException {
+        Files.createDirectories(dir);
+        String stem = "benchmark_" + timestamp.format(TS);
+
+        for (int attempt = 1; ; attempt++) {
+            String suffix = attempt == 1 ? "" : "_" + attempt;
+            Path path = dir.resolve(stem + suffix + ".csv");
+
+            try {
+                BufferedWriter writer = Files.newBufferedWriter(
+                        path,
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE_NEW,
+                        StandardOpenOption.WRITE
+                );
+                return new BenchmarkOutput(path, writer);
+            } catch (FileAlreadyExistsException ignored) {
+                // Try the next numbered filename without overwriting the existing benchmark.
+            }
+        }
+    }
+
     private static String getMinecraftVersion() {
         try {
             return SharedConstants.getCurrentVersion().name();
@@ -1208,6 +1231,13 @@ public final class FpsTracker {
                     lowMethod,
                     pauseHandling
             );
+        }
+    }
+
+    static record BenchmarkOutput(Path path, BufferedWriter writer) implements AutoCloseable {
+        @Override
+        public void close() throws IOException {
+            writer.close();
         }
     }
 

@@ -156,6 +156,8 @@ with names of the form:
 benchmark_yyyyMMdd_HHmmss.csv
 ```
 
+If that name already exists, the tracker atomically creates a numbered variant such as `benchmark_yyyyMMdd_HHmmss_2.csv` rather than overwriting the earlier file.
+
 The file contains start-time metadata, per-frame CSV rows, then a summary footer on normal stop.
 
 The start metadata records the captured duration, pause handling, low method, stutter settings, rolling windows, and metric update intervals. Those measurement settings remain fixed until the run stops, while display-only configuration remains live.
