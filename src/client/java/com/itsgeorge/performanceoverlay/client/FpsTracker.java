@@ -5,6 +5,7 @@ import net.minecraft.SharedConstants;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
@@ -180,7 +181,7 @@ public final class FpsTracker {
 
     public BenchmarkStatus toggleBenchmark() {
         if (benchmarkActive) {
-            return stopBenchmark();
+            return stopBenchmark(BenchmarkEndReason.MANUAL);
         }
 
         // If we had a write error and the writer is already gone, don't silently start a new run.
@@ -190,6 +191,13 @@ public final class FpsTracker {
         }
 
         return startBenchmark();
+    }
+
+    public BenchmarkStatus stopBenchmark(BenchmarkEndReason endReason) {
+        if (!benchmarkActive) {
+            return BenchmarkStatus.error("No benchmark is running");
+        }
+        return finishBenchmark(endReason);
     }
 
     public BenchmarkSummary getBenchmarkSummary() {
@@ -280,7 +288,7 @@ public final class FpsTracker {
         }
     }
 
-    private BenchmarkStatus stopBenchmark() {
+    private BenchmarkStatus finishBenchmark(BenchmarkEndReason endReason) {
         String name = benchmarkFileName;
         String path = benchmarkFilePath;
 
@@ -291,17 +299,13 @@ public final class FpsTracker {
             lastBenchmarkSummary = buildBenchmarkSummaryFullRun(settings);
 
             if (benchmarkWriter != null) {
-                benchmarkWriter.write("# SUMMARY\n");
-
-                // Avoid lying if we hit the in-memory cap:
-                benchmarkWriter.write("# FramesLogged: " + benchmarkFrameCount + "\n");
-                benchmarkWriter.write("# FramesSummary: " + benchmarkFramesSize + "\n");
-
-                benchmarkWriter.write("# AvgFPS: " + f1(lastBenchmarkSummary.avg()) + "\n");
-                benchmarkWriter.write("# Low1FPS: " + f1(lastBenchmarkSummary.low1()) + "\n");
-                benchmarkWriter.write("# Low01FPS: " + f1(lastBenchmarkSummary.low01()) + "\n");
-                benchmarkWriter.write("# Stutters: " + lastBenchmarkSummary.stutters() + "\n");
-                benchmarkWriter.write("# MaxSpikeMs: " + ms1(lastBenchmarkSummary.maxSpikeMs()) + "\n");
+                writeBenchmarkFooter(
+                        benchmarkWriter,
+                        endReason,
+                        benchmarkFrameCount,
+                        benchmarkFramesSize,
+                        lastBenchmarkSummary
+                );
                 benchmarkWriter.flush();
                 benchmarkWriter.close();
             }
@@ -1032,6 +1036,26 @@ public final class FpsTracker {
         return "The benchmark CSV could not be written: " + detail + ". Check the benchmarks folder and available disk space.";
     }
 
+    static void writeBenchmarkFooter(
+            Writer writer,
+            BenchmarkEndReason endReason,
+            long framesLogged,
+            int framesSummary,
+            BenchmarkSummary summary
+    ) throws IOException {
+        writer.write("# EndReason: " + endReason.name() + "\n");
+        writer.write("# SUMMARY\n");
+
+        // These counts may differ if the in-memory summary cap was reached.
+        writer.write("# FramesLogged: " + framesLogged + "\n");
+        writer.write("# FramesSummary: " + framesSummary + "\n");
+        writer.write("# AvgFPS: " + f1(summary.avg()) + "\n");
+        writer.write("# Low1FPS: " + f1(summary.low1()) + "\n");
+        writer.write("# Low01FPS: " + f1(summary.low01()) + "\n");
+        writer.write("# Stutters: " + summary.stutters() + "\n");
+        writer.write("# MaxSpikeMs: " + ms1(summary.maxSpikeMs()) + "\n");
+    }
+
     private static String getModVersion() {
         return FabricLoader.getInstance()
                 .getModContainer("performanceoverlay")
@@ -1293,6 +1317,13 @@ public final class FpsTracker {
         public void close() throws IOException {
             writer.close();
         }
+    }
+
+    public enum BenchmarkEndReason {
+        MANUAL,
+        AUTO_DURATION,
+        OVERLAY_DISABLED,
+        GAME_SHUTDOWN
     }
 
     private record Smoothed(double fps, double ftMs) {

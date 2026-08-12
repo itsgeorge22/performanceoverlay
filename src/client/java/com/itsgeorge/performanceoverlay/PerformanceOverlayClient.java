@@ -7,6 +7,7 @@ import com.itsgeorge.performanceoverlay.client.OverlayRenderer;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -17,9 +18,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class PerformanceOverlayClient implements ClientModInitializer {
     public static final String MOD_ID = "performanceoverlay";
+    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private static final long NS_PER_SEC = 1_000_000_000L;
     private static final long NS_PER_MS = 1_000_000L;
@@ -141,7 +145,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             // Auto-stop benchmark
             if (tracker.isBenchmarkActive() && benchmarkAutoStopAtNs > 0 && now >= benchmarkAutoStopAtNs) {
                 benchmarkAutoStopAtNs = 0;
-                FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
+                FpsTracker.BenchmarkStatus s = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.AUTO_DURATION);
                 clearBenchmarkProgressState();
                 if (s.error()) {
                     showBenchmarkError(client, s);
@@ -154,7 +158,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 config.enabled = !config.enabled;
 
                 if (!config.enabled && tracker.isBenchmarkActive()) {
-                    FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
+                    FpsTracker.BenchmarkStatus s = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.OVERLAY_DISABLED);
                     benchmarkAutoStopAtNs = 0;
                     clearBenchmarkProgressState();
                     if (s.error()) {
@@ -235,6 +239,17 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                     }
                 }
         );
+
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            if (!tracker.isBenchmarkActive()) {
+                return;
+            }
+
+            FpsTracker.BenchmarkStatus status = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.GAME_SHUTDOWN);
+            if (status.error()) {
+                LOGGER.error("Could not finalize active benchmark during game shutdown: {}", status.message());
+            }
+        });
     }
 
     private static void clearBenchmarkProgressState() {

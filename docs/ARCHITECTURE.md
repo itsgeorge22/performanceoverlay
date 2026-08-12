@@ -144,6 +144,8 @@ The writer is flushed every 120 logged frames and closed on normal stop.
 
 If a per-frame write fails, the tracker closes the writer, stops the run, and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, auto-stop, and F7 finalization failures use the same visible error presentation.
 
+The Fabric client-stopping event finalizes an active benchmark during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, overlay disable, or game shutdown. Forced process termination, power loss, and crashes that bypass the lifecycle event can still leave a partial file.
+
 ## Benchmark files
 
 Benchmark files are created under:
@@ -160,7 +162,7 @@ benchmark_yyyyMMdd_HHmmss.csv
 
 If that name already exists, the tracker atomically creates a numbered variant such as `benchmark_yyyyMMdd_HHmmss_2.csv` rather than overwriting the earlier file.
 
-The file contains start-time metadata, per-frame CSV rows, then a summary footer on normal stop.
+The file contains start-time metadata, per-frame CSV rows, then an end reason and summary footer on successful finalization.
 
 The start metadata records the captured duration, pause handling, low method, stutter settings, rolling windows, and metric update intervals. Those measurement settings remain fixed until the run stops, while display-only configuration remains live.
 

@@ -14,7 +14,7 @@ Run only automated tests:
 .\gradlew.bat test
 ```
 
-The automated suite covers benchmark filename collision and write-failure handling, configuration fallback and validation, and deterministic metric calculations for average FPS, percentile lows, mean-worst lows, stutter threshold inclusion and percentage, maximum spike, and rolling-window boundary inclusion.
+The automated suite covers benchmark filename collision, write-failure and shutdown-footer handling, configuration fallback and validation, and deterministic metric calculations for average FPS, percentile lows, mean-worst lows, stutter threshold inclusion and percentage, maximum spike, and rolling-window boundary inclusion.
 
 ## Manual smoke test
 

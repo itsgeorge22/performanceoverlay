@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Finalized active benchmarks during normal game shutdown and recorded why each run ended.
 - Added immediate, user-friendly notifications for benchmark CSV write and finalization failures.
 - Prevented benchmarks started within the same second from overwriting existing CSV files.
 - Standardized configuration labels and replaced internal enum names with readable options.
