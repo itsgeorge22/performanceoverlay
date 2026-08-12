@@ -38,6 +38,7 @@ Automated tests are under `src/test/java`. They exercise production metric calcu
 3. Registers four key bindings.
 4. Registers an `END_CLIENT_TICK` callback for user actions and benchmark lifecycle control.
 5. Attaches the Performance Overlay HUD element immediately before vanilla chat.
+6. Registers play-connection disconnect and client-shutdown benchmark finalization.
 
 ## Runtime flow
 
@@ -90,7 +91,9 @@ Layouts cycle:
 ONE_LINE -> THREE_LINES -> COLUMN -> ONE_LINE
 ```
 
-F10 starts or stops benchmarks regardless of whether the overlay is visible.
+F10 starts or stops benchmarks regardless of whether the overlay is visible, but an inactive benchmark can start only while a world is loaded. Pressing F10 in menus does nothing and displays no message.
+
+Leaving a single-player world or multiplayer server finalizes an active benchmark with `WORLD_LEFT`. Joining another world does not restart it. Dimension changes keep the same play connection, so benchmarks continue across Overworld, Nether, and End transitions.
 
 Automatic stops force a final 100% progress update. If an automatic stop and an F10 press occur during the same client tick, the F10 press is consumed without starting another benchmark.
 
@@ -149,7 +152,7 @@ The background writer is flushed every 120 logged frames. Normal stop waits for 
 
 If row submission fails or the background writer reports an I/O failure, the tracker stops the run and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
 
-The Fabric client-stopping event finalizes an active benchmark during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, or game shutdown. Forced process termination, power loss, and crashes that bypass the lifecycle event can still leave a partial file.
+The Fabric play-connection disconnect event finalizes an active benchmark when its world or server is left. The client-stopping event finalizes any run still active during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, world departure, or game shutdown. Forced process termination, power loss, and crashes that bypass lifecycle events can still leave a partial file.
 
 ## Benchmark files
 

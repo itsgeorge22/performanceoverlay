@@ -1315,6 +1315,7 @@ public final class FpsTracker {
     public enum BenchmarkEndReason {
         MANUAL,
         AUTO_DURATION,
+        WORLD_LEFT,
         GAME_SHUTDOWN
     }
 

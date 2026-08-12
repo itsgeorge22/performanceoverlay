@@ -232,6 +232,8 @@ While a benchmark is active, every metric exported to its CSV is refreshed at it
 
 Starting a benchmark resets rolling history, cached metrics, and update timestamps. The first callback establishes a fresh timestamp and is not logged. Every subsequent measured `dtNs` is appended to a dedicated full-run frame array in addition to the rolling history.
 
+A benchmark can start only while a world is loaded. Leaving that world or server finalizes the run with `WORLD_LEFT`; changing dimensions does not end it.
+
 The array starts at 6000 samples and doubles up to a hard maximum of 5,000,000 retained samples.
 
 CSV logging can continue after this in-memory summary cap is reached, but additional frames are not retained for the final full-run summary.

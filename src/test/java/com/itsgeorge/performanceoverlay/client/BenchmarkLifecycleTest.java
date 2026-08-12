@@ -53,6 +53,22 @@ final class BenchmarkLifecycleTest {
     }
 
     @Test
+    void leavingWorldRecordsItsEndReason() throws Exception {
+        FpsTracker tracker = new FpsTracker(new OverlayConfig());
+        tracker.startBenchmark(directory, START_TIME, () -> ns(100));
+        tracker.onFrame(false, ns(110));
+        tracker.onFrame(false, ns(120));
+
+        FpsTracker.BenchmarkStatus stopped = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.WORLD_LEFT);
+        String csv = Files.readString(Path.of(stopped.filePath()));
+
+        assertTrue(stopped.stopped());
+        assertFalse(tracker.isBenchmarkActive());
+        assertTrue(csv.contains("# EndReason: WORLD_LEFT\n"));
+        assertTrue(csv.contains("# SUMMARY\n"));
+    }
+
+    @Test
     void benchmarkKeepsPauseSettingCapturedAtStart() throws Exception {
         OverlayConfig config = new OverlayConfig();
         config.pauseHandling = OverlayConfig.PauseHandling.FREEZE;

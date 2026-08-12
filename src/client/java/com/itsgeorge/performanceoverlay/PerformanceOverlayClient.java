@@ -9,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.ChatFormatting;
@@ -185,7 +186,11 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             }
 
             while (benchmarkKey.consumeClick()) {
-                if (!shouldHandleBenchmarkKey(benchmarkAutoStoppedThisTick)) {
+                if (!shouldHandleBenchmarkKey(
+                        benchmarkAutoStoppedThisTick,
+                        tracker.isBenchmarkActive(),
+                        client.level != null
+                )) {
                     continue;
                 }
 
@@ -245,6 +250,19 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                     }
                 }
         );
+
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            if (!tracker.isBenchmarkActive()) {
+                return;
+            }
+
+            benchmarkAutoStopAtNs = 0;
+            clearBenchmarkProgressState();
+            FpsTracker.BenchmarkStatus status = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.WORLD_LEFT);
+            if (status.error()) {
+                LOGGER.error("Could not finalize active benchmark when leaving the world: {}", status.message());
+            }
+        });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             if (!tracker.isBenchmarkActive()) {
@@ -389,8 +407,12 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         showChat(client, msg);
     }
 
-    static boolean shouldHandleBenchmarkKey(boolean benchmarkAutoStoppedThisTick) {
-        return !benchmarkAutoStoppedThisTick;
+    static boolean shouldHandleBenchmarkKey(
+            boolean benchmarkAutoStoppedThisTick,
+            boolean benchmarkActive,
+            boolean worldLoaded
+    ) {
+        return !benchmarkAutoStoppedThisTick && (benchmarkActive || worldLoaded);
     }
 
     static int benchmarkProgressPercent(long elapsedSec, long durationSec) {

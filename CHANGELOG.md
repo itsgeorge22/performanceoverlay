@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Limited benchmark starts to loaded worlds and finalized active runs when leaving a world or server.
 - Cached overlay text measurements until the displayed snapshot or font changes.
 - Reduced stutter metric update work by calculating frame count, stutters, and maximum spike in one history scan.
 - Prevented low-percentile calculations from slowing down on large groups of identical frametimes.
