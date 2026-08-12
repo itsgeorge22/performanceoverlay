@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Added complete benchmark summary tests and included stutter percentage in the CSV summary.
 - Made F9 inactive while the overlay is hidden and prevented rolling statistics from being reset during active benchmarks.
 - Made benchmark start, measurement, and stopping independent of whether the overlay is visible.
 - Finalized active benchmarks during normal game shutdown and recorded why each run ended.

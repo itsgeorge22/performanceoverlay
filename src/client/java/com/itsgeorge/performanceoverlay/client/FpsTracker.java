@@ -1052,6 +1052,7 @@ public final class FpsTracker {
         writer.write("# Low1FPS: " + f1(summary.low1()) + "\n");
         writer.write("# Low01FPS: " + f1(summary.low01()) + "\n");
         writer.write("# Stutters: " + summary.stutters() + "\n");
+        writer.write("# StutterPercent: " + summary.stutterPercent() + "\n");
         writer.write("# MaxSpikeMs: " + ms1(summary.maxSpikeMs()) + "\n");
     }
 
@@ -1167,7 +1168,7 @@ public final class FpsTracker {
         return v;
     }
 
-    private void benchPushFrame(long dtNs) {
+    void benchPushFrame(long dtNs) {
         if (dtNs <= 0) {
             return;
         }
@@ -1197,6 +1198,10 @@ public final class FpsTracker {
     }
 
     private BenchmarkSummary buildBenchmarkSummaryFullRun(BenchmarkSettings settings) {
+        return buildBenchmarkSummaryFullRun(settings.lowMethod(), settings.stutterThresholdMs());
+    }
+
+    BenchmarkSummary buildBenchmarkSummaryFullRun(OverlayConfig.LowMethod lowMethod, int stutterThresholdMs) {
         int n = benchmarkFramesSize;
         if (n <= 0 || benchmarkTotalNs <= 0) {
             return new BenchmarkSummary(0, 0, 0, 0, 0, 0);
@@ -1207,7 +1212,7 @@ public final class FpsTracker {
         double low1Fps;
         double low01Fps;
 
-        if (settings.lowMethod() == OverlayConfig.LowMethod.MEAN_WORST) {
+        if (lowMethod == OverlayConfig.LowMethod.MEAN_WORST) {
             long meanWorst1 = meanWorstKFullRun(n, 0.01);
             long meanWorst01 = meanWorstKFullRun(n, 0.001);
 
@@ -1221,7 +1226,7 @@ public final class FpsTracker {
             low01Fps = nsToFps(p999Ns);
         }
 
-        long thresholdNs = (long) settings.stutterThresholdMs() * NS_PER_MS;
+        long thresholdNs = (long) Math.max(1, stutterThresholdMs) * NS_PER_MS;
         int stutters = 0;
         for (int i = 0; i < n; i++) {
             if (benchmarkFramesNs[i] >= thresholdNs) {
