@@ -52,6 +52,7 @@ Phase 1 is complete when no known confirmed stability or persistence bugs remain
 - [ ] Measure benchmark-on versus benchmark-off overhead.
 - [ ] Decide whether benchmark I/O changes are justified by the measurements.
 - [x] Move CSV formatting and writing away from the measured render path using bounded storage and safe failure handling.
+- [x] Combine rolling stutter count, percentage, and maximum-spike work into one history scan.
 - [ ] Remove other per-frame work only where measurement shows meaningful overhead.
 
 Any I/O redesign must preserve current CSV data, support long runs safely, report failures, and avoid a large freeze when a benchmark stops.

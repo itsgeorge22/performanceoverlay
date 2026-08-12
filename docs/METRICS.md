@@ -151,6 +151,8 @@ Stutter percentage is:
 round(stutterCount * 100 / sampleCount)
 ```
 
+Frame count, stutter count, and maximum spike for the shared stutter window are collected in one history scan.
+
 ## Maximum spike
 
 Within the same stutter window:

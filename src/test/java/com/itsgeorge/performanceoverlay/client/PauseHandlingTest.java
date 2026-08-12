@@ -16,8 +16,7 @@ final class PauseHandlingTest {
         tracker.onFrame(true, ns(1110));
         tracker.onFrame(false, ns(1120));
 
-        assertEquals(2, tracker.countAboveThreshold(ns(1120), ns(2000), 1));
-        assertEquals(ns(10), tracker.maxFrameInWindow(ns(1120), ns(2000)));
+        assertStats(tracker.stutterStats(ns(1120), ns(2000), 1), 2, ns(10));
     }
 
     @Test
@@ -30,8 +29,7 @@ final class PauseHandlingTest {
         tracker.onFrame(true, ns(1000));
         tracker.onFrame(false, ns(1010));
 
-        assertEquals(1, tracker.countAboveThreshold(ns(1010), ns(2000), 1));
-        assertEquals(ns(10), tracker.maxFrameInWindow(ns(1010), ns(2000)));
+        assertStats(tracker.stutterStats(ns(1010), ns(2000), 1), 1, ns(10));
     }
 
     @Test
@@ -43,8 +41,13 @@ final class PauseHandlingTest {
         tracker.onFrame(true, ns(200));
         tracker.onFrame(false, ns(210));
 
-        assertEquals(3, tracker.countAboveThreshold(ns(210), ns(1000), 1));
-        assertEquals(ns(50), tracker.maxFrameInWindow(ns(210), ns(1000)));
+        assertStats(tracker.stutterStats(ns(210), ns(1000), 1), 3, ns(50));
+    }
+
+    private static void assertStats(FpsTracker.StutterStats stats, int frames, long maxFrameNs) {
+        assertEquals(frames, stats.frames());
+        assertEquals(frames, stats.stutters());
+        assertEquals(maxFrameNs, stats.maxFrameNs());
     }
 
     private static FpsTracker trackerWith(OverlayConfig.PauseHandling pauseHandling) {

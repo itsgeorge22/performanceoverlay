@@ -136,10 +136,12 @@ final class FpsTrackerMetricTest {
         push(30, 50);
         push(40, 100);
 
-        int stutters = tracker.countAboveThreshold(ns(40), NS_PER_SEC, ns(40));
+        FpsTracker.StutterStats stats = tracker.stutterStats(ns(40), NS_PER_SEC, ns(40));
 
-        assertEquals(3, stutters);
-        assertEquals(75, FpsTracker.calculateStutterPercent(stutters, 4));
+        assertEquals(4, stats.frames());
+        assertEquals(3, stats.stutters());
+        assertEquals(ns(100), stats.maxFrameNs());
+        assertEquals(75, FpsTracker.calculateStutterPercent(stats.stutters(), stats.frames()));
         assertEquals(67, FpsTracker.calculateStutterPercent(2, 3));
         assertEquals(0, FpsTracker.calculateStutterPercent(0, 0));
     }
@@ -151,7 +153,7 @@ final class FpsTrackerMetricTest {
         push(30, 100);
         push(40, 50);
 
-        assertEquals(ns(100), tracker.maxFrameInWindow(ns(40), NS_PER_SEC));
+        assertEquals(ns(100), tracker.stutterStats(ns(40), NS_PER_SEC, 1).maxFrameNs());
     }
 
     @Test
@@ -164,8 +166,10 @@ final class FpsTrackerMetricTest {
         long now = ns(1000);
         long window = ns(100);
 
-        assertEquals(3, tracker.countAboveThreshold(now, window, 1));
-        assertEquals(ns(30), tracker.maxFrameInWindow(now, window));
+        FpsTracker.StutterStats stats = tracker.stutterStats(now, window, 1);
+        assertEquals(3, stats.frames());
+        assertEquals(3, stats.stutters());
+        assertEquals(ns(30), stats.maxFrameNs());
     }
 
     private void pushLowDistribution() {

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Reduced stutter metric update work by calculating frame count, stutters, and maximum spike in one history scan.
 - Prevented low-percentile calculations from slowing down on large groups of identical frametimes.
 - Made benchmark GC values appear only on fresh polls so the CSV column can be summed correctly.
 - Moved benchmark CSV formatting and file writing off the measured render path.

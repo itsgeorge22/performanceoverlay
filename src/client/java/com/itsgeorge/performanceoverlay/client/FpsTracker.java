@@ -483,14 +483,10 @@ public final class FpsTracker {
             long windowNs = (long) settings.stutterWindowSec() * NS_PER_SEC;
             long thresholdNs = (long) settings.stutterThresholdMs() * NS_PER_MS;
 
-            WindowStats w = windowStats(nowNs, windowNs);
-            int frames = w.count;
-
-            cachedStutters = countAboveThreshold(nowNs, windowNs, thresholdNs);
-            cachedStutterPercent = calculateStutterPercent(cachedStutters, frames);
-
-            long maxFrameNs = maxFrameInWindow(nowNs, windowNs);
-            cachedMaxSpikeMs = nsToMs(maxFrameNs);
+            StutterStats stats = stutterStats(nowNs, windowNs, thresholdNs);
+            cachedStutters = stats.stutters();
+            cachedStutterPercent = calculateStutterPercent(cachedStutters, stats.frames());
+            cachedMaxSpikeMs = nsToMs(stats.maxFrameNs());
 
             lastStuttersUpdateNs = nowNs;
             changed = true;
@@ -793,43 +789,30 @@ public final class FpsTracker {
         return idx;
     }
 
-    int countAboveThreshold(long nowNs, long windowNs, long thresholdNs) {
+    StutterStats stutterStats(long nowNs, long windowNs, long thresholdNs) {
         long minNs = nowNs - windowNs;
 
         int cap = frameNs.length;
-        int count = 0;
+        int frames = 0;
+        int stutters = 0;
+        long maxFrameNs = 0;
 
         for (int i = 0; i < size; i++) {
             int idx = (head + size - 1 - i + cap) % cap;
             if (timeNs[idx] < minNs) {
                 break;
             }
-            if (frameNs[idx] >= thresholdNs) {
-                count++;
+            long value = frameNs[idx];
+            frames++;
+            if (value >= thresholdNs) {
+                stutters++;
+            }
+            if (value > maxFrameNs) {
+                maxFrameNs = value;
             }
         }
 
-        return count;
-    }
-
-    long maxFrameInWindow(long nowNs, long windowNs) {
-        long minNs = nowNs - windowNs;
-
-        int cap = frameNs.length;
-        long max = 0;
-
-        for (int i = 0; i < size; i++) {
-            int idx = (head + size - 1 - i + cap) % cap;
-            if (timeNs[idx] < minNs) {
-                break;
-            }
-            long v = frameNs[idx];
-            if (v > max) {
-                max = v;
-            }
-        }
-
-        return max;
+        return new StutterStats(frames, stutters, maxFrameNs);
     }
 
     double windowFps(long nowNs, long windowNs) {
@@ -1336,6 +1319,9 @@ public final class FpsTracker {
     }
 
     record Smoothed(double fps, double ftMs) {
+    }
+
+    record StutterStats(int frames, int stutters, long maxFrameNs) {
     }
 
     private record WindowStats(long sumNs, int count) {
