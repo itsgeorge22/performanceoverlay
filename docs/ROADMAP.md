@@ -26,6 +26,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Make F9 inactive while the overlay is hidden and prevent rolling-stat resets during active benchmarks.
 - [x] Fix preset selection persistence and align the Default preset with the 10-second average window.
 - [x] Correct overlay-disabled and GC metric tooltips.
+- [x] Make automatic-stop progress reach 100% and prevent F10 from immediately restarting the benchmark.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.

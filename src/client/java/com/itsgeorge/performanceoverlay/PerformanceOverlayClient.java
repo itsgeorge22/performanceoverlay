@@ -142,8 +142,12 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 }
             }
 
+            boolean benchmarkAutoStoppedThisTick = false;
+
             // Auto-stop benchmark
             if (tracker.isBenchmarkActive() && benchmarkAutoStopAtNs > 0 && now >= benchmarkAutoStopAtNs) {
+                benchmarkAutoStoppedThisTick = true;
+                showBenchmarkProgressActionbar(client, now);
                 benchmarkAutoStopAtNs = 0;
                 FpsTracker.BenchmarkStatus s = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.AUTO_DURATION);
                 clearBenchmarkProgressState();
@@ -181,6 +185,10 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             }
 
             while (benchmarkKey.consumeClick()) {
+                if (!shouldHandleBenchmarkKey(benchmarkAutoStoppedThisTick)) {
+                    continue;
+                }
+
                 FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
                 if (s.error()) {
                     showBenchmarkError(client, s);
@@ -316,8 +324,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             long dur = benchmarkDurationSecActive;
             long clampedElapsed = Math.min(elapsedSec, dur);
 
-            int pct = (dur > 0) ? (int) Math.round((clampedElapsed * 100.0) / dur) : 0;
-            pct = clamp(pct, 0, 100);
+            int pct = benchmarkProgressPercent(clampedElapsed, dur);
 
             msg = msg.append(Component.literal(pct + "% ").withStyle(ChatFormatting.WHITE))
                     .append(Component.literal("(" + clampedElapsed + "s / " + dur + "s)").withStyle(ChatFormatting.GRAY));
@@ -380,6 +387,17 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         msg = msg.append(Component.literal("\n\nHint: Open the .csv in Excel / Google Sheets or send it to AI").withStyle(ChatFormatting.GRAY));
 
         showChat(client, msg);
+    }
+
+    static boolean shouldHandleBenchmarkKey(boolean benchmarkAutoStoppedThisTick) {
+        return !benchmarkAutoStoppedThisTick;
+    }
+
+    static int benchmarkProgressPercent(long elapsedSec, long durationSec) {
+        if (durationSec <= 0) {
+            return 0;
+        }
+        return clamp((int) Math.round((elapsedSec * 100.0) / durationSec), 0, 100);
     }
 
     private static void showBenchmarkError(Minecraft client, FpsTracker.BenchmarkStatus status) {
