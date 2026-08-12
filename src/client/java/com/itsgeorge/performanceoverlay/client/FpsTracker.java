@@ -609,6 +609,7 @@ public final class FpsTracker {
                         .append(" (").append(cachedStutterPercent).append("%)");
             }
             if (config.showMaxSpike) {
+                appendSep(b);
                 b.append("Spike: ").append(ms1(cachedMaxSpikeMs)).append("ms");
             }
 

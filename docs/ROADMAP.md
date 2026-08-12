@@ -16,7 +16,9 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Fix benchmark Minecraft-version metadata.
 - [x] Exclude pre-benchmark GC activity from each run.
 - [x] Clarify GC time-delta reporting.
+- [x] Fix the missing Max Spike separator in the three-line layout.
 - [ ] Add validation for loaded configuration values.
+- [ ] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.
@@ -72,6 +74,11 @@ Metric definitions must not change without explicit approval, updated tests, and
 - [ ] Add run-to-run comparison.
 - [ ] Capture relevant benchmark environment information automatically.
 - [ ] Add a warm-up, countdown, and fixed-run flow.
+
+## Configuration UX
+
+- [ ] Add a way to view and edit the mod's key bindings from its Mod Menu configuration screen.
+- [ ] Keep key-binding changes synchronized with Minecraft's standard Controls configuration.
 
 ## Phase 7 — Investigate repeatable scenarios
 

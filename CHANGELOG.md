@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Fixed the missing separator before Max Spike in the three-line overlay layout.
 - Clarified GC time-delta reporting and show zero when no collection time accumulated between polls.
 - Added automated accuracy tests for average FPS, both low methods, stutters, maximum spikes, and rolling-window boundaries.
 - Fixed benchmark metadata to show the Minecraft version cleanly and exclude GC activity from before each run.
