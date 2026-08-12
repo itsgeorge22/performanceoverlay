@@ -142,6 +142,8 @@ Benchmark CSV formatting and `BufferedWriter.write()` are currently performed in
 
 The writer is flushed every 120 logged frames and closed on normal stop.
 
+If a per-frame write fails, the tracker closes the writer, stops the run, and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, auto-stop, and F7 finalization failures use the same visible error presentation.
+
 ## Benchmark files
 
 Benchmark files are created under:

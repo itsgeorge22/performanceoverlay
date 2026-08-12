@@ -20,6 +20,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Add validation for loaded configuration values.
 - [x] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.
 - [x] Prevent benchmark filename collisions from overwriting existing CSV files.
+- [x] Report benchmark CSV write and finalization failures immediately and clear stale progress state.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.

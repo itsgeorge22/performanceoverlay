@@ -123,6 +123,13 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             long now = System.nanoTime();
 
+            FpsTracker.BenchmarkStatus pendingStatus = tracker.consumePendingBenchmarkStatus();
+            if (pendingStatus != null) {
+                benchmarkAutoStopAtNs = 0;
+                clearBenchmarkProgressState();
+                showBenchmarkError(client, pendingStatus);
+            }
+
             // ActionBar progress while benchmark is active (no chat spam)
             if (tracker.isBenchmarkActive()) {
                 if (dueNs(now, lastBenchmarkActionbarUpdateNs, 500)) {
@@ -135,8 +142,10 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             if (tracker.isBenchmarkActive() && benchmarkAutoStopAtNs > 0 && now >= benchmarkAutoStopAtNs) {
                 benchmarkAutoStopAtNs = 0;
                 FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
-                if (!s.error()) {
-                    clearBenchmarkProgressState();
+                clearBenchmarkProgressState();
+                if (s.error()) {
+                    showBenchmarkError(client, s);
+                } else {
                     showBenchmarkStopped(client, s);
                 }
             }
@@ -145,9 +154,12 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 config.enabled = !config.enabled;
 
                 if (!config.enabled && tracker.isBenchmarkActive()) {
-                    tracker.toggleBenchmark();
+                    FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
                     benchmarkAutoStopAtNs = 0;
                     clearBenchmarkProgressState();
+                    if (s.error()) {
+                        showBenchmarkError(client, s);
+                    }
                 }
 
                 tracker.setConfig(config, false);
@@ -169,7 +181,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
 
                 FpsTracker.BenchmarkStatus s = tracker.toggleBenchmark();
                 if (s.error()) {
-                    showActionbarPlain(client, Component.literal(s.message()).withStyle(ChatFormatting.WHITE));
+                    showBenchmarkError(client, s);
                     benchmarkAutoStopAtNs = 0;
                     clearBenchmarkProgressState();
                     continue;
@@ -353,6 +365,19 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         msg = msg.append(Component.literal("\n" + path).withStyle(ChatFormatting.WHITE));
 
         msg = msg.append(Component.literal("\n\nHint: Open the .csv in Excel / Google Sheets or send it to AI").withStyle(ChatFormatting.GRAY));
+
+        showChat(client, msg);
+    }
+
+    private static void showBenchmarkError(Minecraft client, FpsTracker.BenchmarkStatus status) {
+        MutableComponent msg = Component.literal("Performance Overlay — Benchmark Error")
+                .withStyle(ChatFormatting.RED)
+                .append(Component.literal("\n" + status.message()).withStyle(ChatFormatting.WHITE));
+
+        String path = status.filePath();
+        if (path != null && !path.isEmpty()) {
+            msg = msg.append(Component.literal("\nIncomplete file: " + path).withStyle(ChatFormatting.GRAY));
+        }
 
         showChat(client, msg);
     }

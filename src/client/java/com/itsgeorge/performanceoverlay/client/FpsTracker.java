@@ -6,6 +6,7 @@ import net.minecraft.SharedConstants;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,6 +78,7 @@ public final class FpsTracker {
     private long benchmarkFrameCount = 0;
 
     private boolean benchmarkHadWriteError = false;
+    private BenchmarkStatus pendingBenchmarkStatus = null;
 
     // Benchmark (full-run stats)
     private long[] benchmarkFramesNs = null;
@@ -167,6 +169,15 @@ public final class FpsTracker {
         return benchmarkActive;
     }
 
+    public BenchmarkStatus consumePendingBenchmarkStatus() {
+        BenchmarkStatus status = pendingBenchmarkStatus;
+        pendingBenchmarkStatus = null;
+        if (status != null) {
+            benchmarkHadWriteError = false;
+        }
+        return status;
+    }
+
     public BenchmarkStatus toggleBenchmark() {
         if (benchmarkActive) {
             return stopBenchmark();
@@ -201,6 +212,7 @@ public final class FpsTracker {
         }
 
         benchmarkHadWriteError = false;
+        pendingBenchmarkStatus = null;
         BenchmarkSettings settings = liveSettings;
 
         try {
@@ -261,18 +273,20 @@ public final class FpsTracker {
 
             return BenchmarkStatus.started(benchmarkFileName, benchmarkFilePath);
         } catch (IOException e) {
+            String failedName = benchmarkFileName;
+            String failedPath = benchmarkFilePath;
             clearBenchmarkState();
-            return BenchmarkStatus.error("Failed to start benchmark: " + e.getMessage());
+            return BenchmarkStatus.error(describeBenchmarkIoError(e), failedName, failedPath);
         }
     }
 
     private BenchmarkStatus stopBenchmark() {
+        String name = benchmarkFileName;
+        String path = benchmarkFilePath;
+
         try {
             BenchmarkSettings settings = benchmarkSettings != null ? benchmarkSettings : liveSettings;
             benchmarkActive = false;
-
-            String name = benchmarkFileName;
-            String path = benchmarkFilePath;
 
             lastBenchmarkSummary = buildBenchmarkSummaryFullRun(settings);
 
@@ -299,8 +313,9 @@ public final class FpsTracker {
 
             return BenchmarkStatus.stopped(name, path);
         } catch (IOException e) {
+            closeBenchmarkWriterQuietly();
             clearBenchmarkStateKeepSummary();
-            return BenchmarkStatus.error("Failed to stop benchmark: " + e.getMessage());
+            return BenchmarkStatus.error(describeBenchmarkIoError(e), name, path);
         }
     }
 
@@ -317,6 +332,7 @@ public final class FpsTracker {
 
         benchmarkWriter = null;
         benchmarkSettings = null;
+        pendingBenchmarkStatus = null;
         benchmarkFileName = "";
         benchmarkFilePath = "";
         benchmarkStartNs = 0;
@@ -508,9 +524,7 @@ public final class FpsTracker {
                     benchmarkFlushCounter = 0;
                 }
             } catch (IOException e) {
-                // FIX #2: don't half-reset fields; use the shared cleanup
-                benchmarkHadWriteError = true;
-                clearBenchmarkStateKeepSummary();
+                handleBenchmarkWriteFailure(e);
             }
         }
 
@@ -978,6 +992,46 @@ public final class FpsTracker {
         return whole + "." + frac;
     }
 
+    void handleBenchmarkWriteFailure(IOException error) {
+        String name = benchmarkFileName;
+        String path = benchmarkFilePath;
+
+        benchmarkHadWriteError = true;
+        pendingBenchmarkStatus = BenchmarkStatus.error(
+                describeBenchmarkIoError(error),
+                name,
+                path
+        );
+
+        closeBenchmarkWriterQuietly();
+        clearBenchmarkStateKeepSummary();
+    }
+
+    private void closeBenchmarkWriterQuietly() {
+        if (benchmarkWriter == null) {
+            return;
+        }
+
+        try {
+            benchmarkWriter.close();
+        } catch (IOException ignored) {
+        }
+        benchmarkWriter = null;
+    }
+
+    static String describeBenchmarkIoError(IOException error) {
+        if (error instanceof FileAlreadyExistsException) {
+            return "The benchmark folder is blocked by a file named 'benchmarks'. Remove that file or restore the benchmarks folder.";
+        }
+        if (error instanceof AccessDeniedException) {
+            return "Minecraft does not have permission to write benchmark files. Check the benchmarks folder permissions.";
+        }
+
+        String message = error.getMessage();
+        String detail = message == null || message.isBlank() ? error.getClass().getSimpleName() : message;
+        return "The benchmark CSV could not be written: " + detail + ". Check the benchmarks folder and available disk space.";
+    }
+
     private static String getModVersion() {
         return FabricLoader.getInstance()
                 .getModContainer("performanceoverlay")
@@ -1274,6 +1328,10 @@ public final class FpsTracker {
 
         public static BenchmarkStatus error(String message) {
             return new BenchmarkStatus(false, false, true, message, "", "");
+        }
+
+        public static BenchmarkStatus error(String message, String fileName, String filePath) {
+            return new BenchmarkStatus(false, false, true, message, fileName, filePath);
         }
 
         public boolean started() {
