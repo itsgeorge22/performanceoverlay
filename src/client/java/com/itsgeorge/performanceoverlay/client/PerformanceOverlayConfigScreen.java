@@ -501,6 +501,7 @@ public final class PerformanceOverlayConfigScreen {
 
         c.showFrametime = src.showFrametime;
         c.showStutters = src.showStutters;
+        c.showMaxSpike = src.showMaxSpike;
 
         c.showGc = src.showGc;
         c.showMemory = src.showMemory;
@@ -515,6 +516,8 @@ public final class PerformanceOverlayConfigScreen {
         c.lineSpacingPx = src.lineSpacingPx;
 
         c.preset = src.preset;
+
+        c.autoBenchmarkDurationSec = src.autoBenchmarkDurationSec;
 
         c.fpsUpdateMs = src.fpsUpdateMs;
         c.frametimeUpdateMs = src.frametimeUpdateMs;

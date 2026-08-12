@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed the settings screen resetting Max Spike visibility and benchmark duration when saving.
+
 ## 1.0.1
 - Correct supported Minecraft versions to 1.21.9–1.21.11
 
