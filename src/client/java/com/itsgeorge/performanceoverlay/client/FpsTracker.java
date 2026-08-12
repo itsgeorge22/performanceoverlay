@@ -426,7 +426,7 @@ public final class FpsTracker {
         boolean dueFt = config.showFrametime && due(nowNs, lastFtUpdateNs, settings.frametimeUpdateMs());
 
         if (dueFps || dueFt) {
-            Smoothed s = computeSmoothed(nowNs, dtNs, settings);
+            Smoothed s = computeSmoothed(nowNs, dtNs, (long) settings.fpsWindowMs() * NS_PER_MS);
 
             if (dueFps) {
                 cachedFps = s.fps;
@@ -731,11 +731,10 @@ public final class FpsTracker {
         return benchmarkActive && benchmarkSettings != null ? benchmarkSettings : liveSettings;
     }
 
-    private Smoothed computeSmoothed(long nowNs, long lastDtNs, BenchmarkSettings settings) {
+    Smoothed computeSmoothed(long nowNs, long lastDtNs, long windowNs) {
         double fps = nsToFps(lastDtNs);
         double ftMs = nsToMs(lastDtNs);
 
-        long windowNs = (long) settings.fpsWindowMs() * NS_PER_MS;
         WindowStats w = windowStats(nowNs, windowNs);
 
         if (w.count >= 2 && w.sumNs > 0) {
@@ -1325,7 +1324,7 @@ public final class FpsTracker {
         GAME_SHUTDOWN
     }
 
-    private record Smoothed(double fps, double ftMs) {
+    record Smoothed(double fps, double ftMs) {
     }
 
     private record WindowStats(long sumNs, int count) {

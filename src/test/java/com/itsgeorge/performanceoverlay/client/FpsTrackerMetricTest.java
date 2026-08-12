@@ -33,6 +33,50 @@ final class FpsTrackerMetricTest {
     }
 
     @Test
+    void frametimeUsesLatestFrameWhenOnlyOneSampleExists() {
+        push(10, 12);
+
+        FpsTracker.Smoothed smoothed = tracker.computeSmoothed(ns(10), ns(12), NS_PER_SEC);
+
+        assertEquals(12.0, smoothed.ftMs(), 0.000_001);
+    }
+
+    @Test
+    void frametimeAveragesMultipleFramesInTheWindow() {
+        push(10, 10);
+        push(20, 20);
+        push(30, 30);
+
+        FpsTracker.Smoothed smoothed = tracker.computeSmoothed(ns(30), ns(30), NS_PER_SEC);
+
+        assertEquals(20.0, smoothed.ftMs(), 0.000_001);
+    }
+
+    @Test
+    void frametimeIncludesTheWindowBoundaryAndExcludesOlderFrames() {
+        push(899, 500);
+        push(900, 20);
+        push(950, 30);
+        push(1000, 10);
+
+        FpsTracker.Smoothed smoothed = tracker.computeSmoothed(ns(1000), ns(10), ns(100));
+
+        assertEquals(20.0, smoothed.ftMs(), 0.000_001);
+    }
+
+    @Test
+    void resetClearsFramesUsedByFrametime() {
+        push(10, 50);
+        push(20, 50);
+        tracker.reset();
+        push(30, 10);
+
+        FpsTracker.Smoothed smoothed = tracker.computeSmoothed(ns(30), ns(10), NS_PER_SEC);
+
+        assertEquals(10.0, smoothed.ftMs(), 0.000_001);
+    }
+
+    @Test
     void percentileLowsSelectConfiguredTailBoundaries() {
         pushLowDistribution();
 

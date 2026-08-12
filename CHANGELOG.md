@@ -10,7 +10,7 @@
 - Added validation and safe defaults for malformed, missing, or out-of-range configuration values.
 - Fixed the missing separator before Max Spike in the three-line overlay layout.
 - Clarified GC time-delta reporting and show zero when no collection time accumulated between polls.
-- Added automated accuracy tests for average FPS, both low methods, stutters, maximum spikes, and rolling-window boundaries.
+- Added automated accuracy tests for FPS, frametime, both low methods, stutters, maximum spikes, resets, and rolling-window boundaries.
 - Fixed benchmark metadata to show the Minecraft version cleanly and exclude GC activity from before each run.
 - Fixed benchmark CSV data to remain complete when metrics are hidden and use a fresh, fixed measurement configuration for each run.
 - Fixed the settings screen resetting Max Spike visibility and benchmark duration when saving.

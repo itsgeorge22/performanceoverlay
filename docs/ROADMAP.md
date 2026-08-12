@@ -34,7 +34,7 @@ Phase 1 is complete when no known confirmed stability or persistence bugs remain
 - [x] Test percentile and mean-worst 1% and 0.1% lows.
 - [x] Test stutter count, percentage, threshold inclusion, and maximum spike.
 - [x] Test rolling-window boundaries.
-- [ ] Test frametime calculations.
+- [x] Test frametime calculations.
 - [ ] Test complete benchmark summaries.
 - [ ] Test pause handling and benchmark lifecycle behavior.
 - [x] Make benchmark collection independent of overlay visibility.
