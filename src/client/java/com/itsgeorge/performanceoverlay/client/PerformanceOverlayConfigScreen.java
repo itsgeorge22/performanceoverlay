@@ -27,13 +27,14 @@ public final class PerformanceOverlayConfigScreen {
     public static Screen build(Screen parent) {
         OverlayConfig current = PerformanceOverlayClient.getConfig();
         OverlayConfig working = copy(current);
+        OverlayConfig initial = copy(current);
         OverlayConfig defaults = new OverlayConfig();
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Component.literal("Performance Overlay"))
                 .setSavingRunnable(() -> {
-                    applyPresetOnSave(working);
+                    finalizePresetOnSave(working, initial.preset);
                     PerformanceOverlayClient.setConfig(working);
                     ConfigIO.save(working);
                 });
@@ -190,12 +191,7 @@ public final class PerformanceOverlayConfigScreen {
                         Component.literal("Smooth = steadier numbers."),
                         Component.literal("Custom = your values.")
                 )
-                .setSaveConsumer(v -> {
-                    working.preset = v;
-                    if (v != OverlayConfig.Preset.CUSTOM) {
-                        applyPreset(working, v);
-                    }
-                })
+                .setSaveConsumer(v -> working.preset = v)
                 .build());
 
         advanced.addEntry(eb.startEnumSelector(label("Pause handling"), OverlayConfig.PauseHandling.class, working.pauseHandling)
@@ -205,10 +201,7 @@ public final class PerformanceOverlayConfigScreen {
                         Component.literal("Freeze = stop sampling, keep values."),
                         Component.literal("Track = keep sampling (may distort).")
                 )
-                .setSaveConsumer(v -> {
-                    working.pauseHandling = v;
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.pauseHandling = v)
                 .build());
 
         advanced.addEntry(eb.startEnumSelector(label("Low calculation method"), OverlayConfig.LowMethod.class, working.lowMethod)
@@ -217,10 +210,7 @@ public final class PerformanceOverlayConfigScreen {
                         Component.literal("Mean worst = average of worst frames (stricter)."),
                         Component.literal("Percentile = percentile frametime (more standard).")
                 )
-                .setSaveConsumer(v -> {
-                    working.lowMethod = v;
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.lowMethod = v)
                 .build());
 
         advanced.addEntry(eb.startTextDescription(section("— Benchmark —")).build());
@@ -243,10 +233,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(50)
                 .setMax(5000)
                 .setTooltip(Component.literal("How often FPS updates (smoothed)."))
-                .setSaveConsumer(v -> {
-                    working.fpsUpdateMs = clamp(v, 50, 5000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.fpsUpdateMs = clamp(v, 50, 5000))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("Frametime update (ms)"), working.frametimeUpdateMs)
@@ -254,10 +241,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(50)
                 .setMax(5000)
                 .setTooltip(Component.literal("How often frametime updates."))
-                .setSaveConsumer(v -> {
-                    working.frametimeUpdateMs = clamp(v, 50, 5000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.frametimeUpdateMs = clamp(v, 50, 5000))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("Average FPS update (ms)"), working.avgUpdateMs)
@@ -265,10 +249,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(100)
                 .setMax(10000)
                 .setTooltip(Component.literal("How often average FPS recalculates."))
-                .setSaveConsumer(v -> {
-                    working.avgUpdateMs = clamp(v, 100, 10000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.avgUpdateMs = clamp(v, 100, 10000))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("1% low update (ms)"), working.low1UpdateMs)
@@ -276,10 +257,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(100)
                 .setMax(10000)
                 .setTooltip(Component.literal("How often 1% Low recalculates."))
-                .setSaveConsumer(v -> {
-                    working.low1UpdateMs = clamp(v, 100, 10000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.low1UpdateMs = clamp(v, 100, 10000))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("0.1% low update (ms)"), working.low01UpdateMs)
@@ -287,10 +265,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(100)
                 .setMax(10000)
                 .setTooltip(Component.literal("How often 0.1% Low recalculates."))
-                .setSaveConsumer(v -> {
-                    working.low01UpdateMs = clamp(v, 100, 10000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.low01UpdateMs = clamp(v, 100, 10000))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("Stutters update (ms)"), working.stuttersUpdateMs)
@@ -298,10 +273,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(100)
                 .setMax(10000)
                 .setTooltip(Component.literal("How often stutter count recalculates."))
-                .setSaveConsumer(v -> {
-                    working.stuttersUpdateMs = clamp(v, 100, 10000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.stuttersUpdateMs = clamp(v, 100, 10000))
                 .build());
 
         advanced.addEntry(eb.startTextDescription(section("— Windows —")).build());
@@ -311,10 +283,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(50)
                 .setMax(2000)
                 .setTooltip(Component.literal("Time window used to smooth displayed FPS."))
-                .setSaveConsumer(v -> {
-                    working.fpsWindowMs = clamp(v, 50, 2000);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.fpsWindowMs = clamp(v, 50, 2000))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("Average FPS window (sec)"), working.avgWindowSec)
@@ -322,10 +291,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(1)
                 .setMax(30)
                 .setTooltip(Component.literal("History window used to calculate average FPS."))
-                .setSaveConsumer(v -> {
-                    working.avgWindowSec = clamp(v, 1, 30);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.avgWindowSec = clamp(v, 1, 30))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("1% low window (sec)"), working.low1WindowSec)
@@ -333,10 +299,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(1)
                 .setMax(60)
                 .setTooltip(Component.literal("History window used to calculate 1% Low."))
-                .setSaveConsumer(v -> {
-                    working.low1WindowSec = clamp(v, 1, 60);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.low1WindowSec = clamp(v, 1, 60))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("0.1% low window (sec)"), working.low01WindowSec)
@@ -344,10 +307,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(1)
                 .setMax(60)
                 .setTooltip(Component.literal("History window used to calculate 0.1% Low."))
-                .setSaveConsumer(v -> {
-                    working.low01WindowSec = clamp(v, 1, 60);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.low01WindowSec = clamp(v, 1, 60))
                 .build());
 
         advanced.addEntry(eb.startTextDescription(section("— Stutters —")).build());
@@ -357,10 +317,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(5)
                 .setMax(500)
                 .setTooltip(Component.literal("Frames >= this frametime count as stutters."))
-                .setSaveConsumer(v -> {
-                    working.stutterThresholdMs = clamp(v, 5, 500);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.stutterThresholdMs = clamp(v, 5, 500))
                 .build());
 
         advanced.addEntry(eb.startIntField(label("Stutter window (sec)"), working.stutterWindowSec)
@@ -368,10 +325,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setMin(1)
                 .setMax(60)
                 .setTooltip(Component.literal("History window used to count stutters."))
-                .setSaveConsumer(v -> {
-                    working.stutterWindowSec = clamp(v, 1, 60);
-                    working.preset = OverlayConfig.Preset.CUSTOM;
-                })
+                .setSaveConsumer(v -> working.stutterWindowSec = clamp(v, 1, 60))
                 .build());
 
         advanced.addEntry(eb.startTextDescription(section("— Coloring —")).build());
@@ -407,17 +361,24 @@ public final class PerformanceOverlayConfigScreen {
         return builder.build();
     }
 
-    private static void applyPresetOnSave(OverlayConfig cfg) {
-        if (cfg.preset == OverlayConfig.Preset.DEFAULT) {
-            applyPreset(cfg, OverlayConfig.Preset.DEFAULT);
-        } else if (cfg.preset == OverlayConfig.Preset.RESPONSIVE) {
-            applyPreset(cfg, OverlayConfig.Preset.RESPONSIVE);
-        } else if (cfg.preset == OverlayConfig.Preset.SMOOTH) {
-            applyPreset(cfg, OverlayConfig.Preset.SMOOTH);
+    static void finalizePresetOnSave(OverlayConfig cfg, OverlayConfig.Preset initialPreset) {
+        OverlayConfig.Preset selected = cfg.preset != null ? cfg.preset : OverlayConfig.Preset.DEFAULT;
+
+        if (selected == OverlayConfig.Preset.CUSTOM) {
+            cfg.preset = OverlayConfig.Preset.CUSTOM;
+            return;
         }
+
+        if (selected != initialPreset) {
+            applyPreset(cfg, selected);
+            cfg.preset = selected;
+            return;
+        }
+
+        cfg.preset = matchesPreset(cfg, selected) ? selected : OverlayConfig.Preset.CUSTOM;
     }
 
-    private static void applyPreset(OverlayConfig cfg, OverlayConfig.Preset preset) {
+    static void applyPreset(OverlayConfig cfg, OverlayConfig.Preset preset) {
         if (preset == OverlayConfig.Preset.DEFAULT) {
             cfg.fpsUpdateMs = 250;
             cfg.frametimeUpdateMs = 250;
@@ -427,7 +388,7 @@ public final class PerformanceOverlayConfigScreen {
             cfg.stuttersUpdateMs = 1000;
 
             cfg.fpsWindowMs = 500;
-            cfg.avgWindowSec = 3;
+            cfg.avgWindowSec = 10;
             cfg.low1WindowSec = 10;
             cfg.low01WindowSec = 10;
 
@@ -467,6 +428,23 @@ public final class PerformanceOverlayConfigScreen {
 
             cfg.pauseHandling = OverlayConfig.PauseHandling.FREEZE;
         }
+    }
+
+    private static boolean matchesPreset(OverlayConfig cfg, OverlayConfig.Preset preset) {
+        OverlayConfig expected = new OverlayConfig();
+        applyPreset(expected, preset);
+
+        return cfg.fpsUpdateMs == expected.fpsUpdateMs
+                && cfg.frametimeUpdateMs == expected.frametimeUpdateMs
+                && cfg.avgUpdateMs == expected.avgUpdateMs
+                && cfg.low1UpdateMs == expected.low1UpdateMs
+                && cfg.low01UpdateMs == expected.low01UpdateMs
+                && cfg.stuttersUpdateMs == expected.stuttersUpdateMs
+                && cfg.fpsWindowMs == expected.fpsWindowMs
+                && cfg.avgWindowSec == expected.avgWindowSec
+                && cfg.low1WindowSec == expected.low1WindowSec
+                && cfg.low01WindowSec == expected.low01WindowSec
+                && cfg.pauseHandling == expected.pauseHandling;
     }
 
     private static int clamp(int v, int min, int max) {

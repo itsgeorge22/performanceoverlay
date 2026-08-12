@@ -224,6 +224,8 @@ Reads and writes use the whole JSON file. Loaded values are validated against th
 
 Configuration UI text uses sentence case, retains uppercase technical acronyms such as FPS and GC, and displays enum choices as readable words with spaces rather than serialized identifiers. Serialized JSON enum names remain unchanged for compatibility.
 
+Default, Responsive, and Smooth presets apply their complete controlled value set when newly selected and remain selected after saving. Editing a value controlled by the active preset changes it to Custom. The Default preset uses a 10-second average FPS window.
+
 ## Threading model
 
 No worker thread or asynchronous benchmark writer is present in the current implementation.

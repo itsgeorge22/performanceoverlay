@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Fixed configuration presets being overwritten on save and aligned Default with its 10-second average window.
 - Added complete benchmark summary tests and included stutter percentage in the CSV summary.
 - Made F9 inactive while the overlay is hidden and prevented rolling statistics from being reset during active benchmarks.
 - Made benchmark start, measurement, and stopping independent of whether the overlay is visible.
