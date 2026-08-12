@@ -27,14 +27,23 @@ public final class ConfigIO {
 
         try {
             String json = Files.readString(path, StandardCharsets.UTF_8);
-            OverlayConfig cfg = GSON.fromJson(json, OverlayConfig.class);
-            return cfg != null ? cfg : new OverlayConfig();
+            return parse(json);
         } catch (IOException e) {
             return new OverlayConfig();
         }
     }
 
+    static OverlayConfig parse(String json) {
+        try {
+            OverlayConfig cfg = GSON.fromJson(json, OverlayConfig.class);
+            return (cfg != null ? cfg : new OverlayConfig()).validate();
+        } catch (RuntimeException e) {
+            return new OverlayConfig();
+        }
+    }
+
     public static void save(OverlayConfig cfg) {
+        cfg.validate();
         Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
 
         try {

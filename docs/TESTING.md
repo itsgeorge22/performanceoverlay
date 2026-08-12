@@ -14,7 +14,7 @@ Run only automated tests:
 .\gradlew.bat test
 ```
 
-The metric test suite uses deterministic frame timestamps and durations. It covers average FPS, percentile lows, mean-worst lows, stutter threshold inclusion and percentage, maximum spike, and rolling-window boundary inclusion.
+The automated suite covers configuration fallback and validation plus deterministic metric calculations for average FPS, percentile lows, mean-worst lows, stutter threshold inclusion and percentage, maximum spike, and rolling-window boundary inclusion.
 
 ## Manual smoke test
 

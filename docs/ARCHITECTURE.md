@@ -212,7 +212,7 @@ It contains:
 
 If the file does not exist, defaults are created and saved.
 
-Current persistence behavior is simple: reads and writes use the whole JSON file, write I/O errors are ignored, and no schema migration or post-load validation layer is implemented.
+Reads and writes use the whole JSON file. Loaded values are validated against the same ranges used by the configuration screen, missing enum values receive defaults, and malformed JSON falls back to the default configuration. Write I/O errors are still ignored, and no schema migration layer is implemented.
 
 ## Threading model
 

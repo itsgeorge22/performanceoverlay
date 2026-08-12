@@ -65,6 +65,51 @@ public class OverlayConfig {
     public int warningFps = 50;
     public int dangerFps = 25;
 
+    public OverlayConfig validate() {
+        OverlayConfig defaults = new OverlayConfig();
+
+        if (position == null) position = defaults.position;
+        if (textLayout == null) textLayout = defaults.textLayout;
+        if (preset == null) preset = defaults.preset;
+        if (lowMethod == null) lowMethod = defaults.lowMethod;
+        if (pauseHandling == null) pauseHandling = defaults.pauseHandling;
+        if (colorTarget == null) colorTarget = defaults.colorTarget;
+
+        offsetX = clamp(offsetX, 0, 5000);
+        offsetY = clamp(offsetY, 0, 5000);
+        scale = Float.isFinite(scale) ? clamp(scale, 0.5f, 2.0f) : defaults.scale;
+        lineSpacingPx = clamp(lineSpacingPx, 0, 30);
+
+        autoBenchmarkDurationSec = clamp(autoBenchmarkDurationSec, 0, 3600);
+
+        fpsUpdateMs = clamp(fpsUpdateMs, 50, 5000);
+        frametimeUpdateMs = clamp(frametimeUpdateMs, 50, 5000);
+        avgUpdateMs = clamp(avgUpdateMs, 100, 10000);
+        low1UpdateMs = clamp(low1UpdateMs, 100, 10000);
+        low01UpdateMs = clamp(low01UpdateMs, 100, 10000);
+        stuttersUpdateMs = clamp(stuttersUpdateMs, 100, 10000);
+
+        fpsWindowMs = clamp(fpsWindowMs, 50, 2000);
+        avgWindowSec = clamp(avgWindowSec, 1, 30);
+        low1WindowSec = clamp(low1WindowSec, 1, 60);
+        low01WindowSec = clamp(low01WindowSec, 1, 60);
+        stutterThresholdMs = clamp(stutterThresholdMs, 5, 500);
+        stutterWindowSec = clamp(stutterWindowSec, 1, 60);
+
+        warningFps = clamp(warningFps, 1, 500);
+        dangerFps = clamp(dangerFps, 1, 500);
+
+        return this;
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     public enum OverlayPosition {
         TOP_LEFT,
         TOP_CENTER,

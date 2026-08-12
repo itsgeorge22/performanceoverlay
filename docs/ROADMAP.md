@@ -17,7 +17,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Exclude pre-benchmark GC activity from each run.
 - [x] Clarify GC time-delta reporting.
 - [x] Fix the missing Max Spike separator in the three-line layout.
-- [ ] Add validation for loaded configuration values.
+- [x] Add validation for loaded configuration values.
 - [ ] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
