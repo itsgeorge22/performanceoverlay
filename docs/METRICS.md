@@ -298,3 +298,5 @@ Maximum spike is the maximum retained benchmark frame duration.
 `FpsTracker.reset()` clears rolling history, metric update timestamps, cached values, and visible snapshot state.
 
 It does not clear an active benchmark's dedicated full-run frame collection.
+
+The F9 reset key is therefore blocked while a benchmark is active. It becomes available again after the benchmark stops.

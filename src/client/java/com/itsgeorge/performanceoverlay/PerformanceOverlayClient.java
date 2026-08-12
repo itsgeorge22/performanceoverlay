@@ -164,6 +164,14 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             }
 
             while (resetKey.consumeClick()) {
+                if (tracker.isBenchmarkActive()) {
+                    showActionbarPlain(
+                            client,
+                            Component.literal("Cannot reset stats during a benchmark").withStyle(ChatFormatting.RED)
+                    );
+                    continue;
+                }
+
                 tracker.reset();
                 showResetActionbar(client);
             }
