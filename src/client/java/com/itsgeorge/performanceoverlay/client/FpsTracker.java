@@ -87,6 +87,7 @@ public final class FpsTracker {
 
     public FpsTracker(OverlayConfig config) {
         setConfig(config, true);
+        resetGcBaseline();
     }
 
     public void setConfig(OverlayConfig cfg, boolean forceReset) {
@@ -239,6 +240,7 @@ public final class FpsTracker {
             benchmarkSettings = settings;
             ensureCapacity(settings);
             reset();
+            resetGcBaseline();
 
             benchmarkActive = true;
             benchmarkStartNs = System.nanoTime();
@@ -979,19 +981,7 @@ public final class FpsTracker {
 
     private static String getMinecraftVersion() {
         try {
-            Object v = SharedConstants.getCurrentVersion();
-
-            try {
-                return String.valueOf(v.getClass().getMethod("getName").invoke(v));
-            } catch (ReflectiveOperationException ignored) {
-            }
-
-            try {
-                return String.valueOf(v.getClass().getMethod("getId").invoke(v));
-            } catch (ReflectiveOperationException ignored) {
-            }
-
-            return String.valueOf(v);
+            return SharedConstants.getCurrentVersion().name();
         } catch (Exception e) {
             return "unknown";
         }
@@ -1298,17 +1288,28 @@ public final class FpsTracker {
 
     private long lastTotalGcTimeMs = 0;
 
+    private void resetGcBaseline() {
+        lastTotalGcTimeMs = readTotalGcTimeMs();
+    }
+
     private long readLastGcPauseMs() {
-        long total = 0;
-
-        for (var bean : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
-            long t = bean.getCollectionTime();
-            if (t > 0) total += t;
-        }
-
+        long total = readTotalGcTimeMs();
         long delta = total - lastTotalGcTimeMs;
         lastTotalGcTimeMs = total;
 
         return Math.max(delta, 0);
+    }
+
+    private static long readTotalGcTimeMs() {
+        long total = 0;
+
+        for (var bean : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
+            long t = bean.getCollectionTime();
+            if (t > 0) {
+                total += t;
+            }
+        }
+
+        return total;
     }
 }

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Fixed benchmark metadata to show the Minecraft version cleanly and exclude GC activity from before each run.
 - Fixed benchmark CSV data to remain complete when metrics are hidden and use a fresh, fixed measurement configuration for each run.
 - Fixed the settings screen resetting Max Spike visibility and benchmark duration when saving.
 

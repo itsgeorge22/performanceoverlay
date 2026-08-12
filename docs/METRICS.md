@@ -174,7 +174,7 @@ gcDeltaMs = max(0, currentTotalGcMs - previousTotalGcMs)
 
 The displayed value is therefore aggregate JVM GC collection time accumulated between polls. It is not the duration of the most recent individual GC pause.
 
-Current limitation: the first positive sample can include GC time accumulated before Performance Overlay's first poll because the previous total starts at zero.
+The cumulative GC baseline is initialized when the tracker is created and reset when each benchmark starts. Benchmark GC values therefore exclude collection time accumulated before that run.
 
 A non-positive result is stored internally as unavailable and currently renders as `GC: NaN`.
 
@@ -260,7 +260,7 @@ mem_max_mb
 
 The exported rolling metrics are calculated regardless of overlay visibility while a benchmark is active. Their cached values can repeat between configured refreshes.
 
-GC and memory are sampled before the current benchmark row is written whenever their fixed polling cadence is due.
+GC and memory are sampled before the current benchmark row is written whenever their fixed polling cadence is due. The first benchmark GC value is zero/unavailable unless collection occurs after the run's baseline is captured.
 
 `frame_ms` is the authoritative per-frame measurement. The other columns are derived or periodically sampled context for that frame.
 
