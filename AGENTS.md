@@ -36,6 +36,9 @@ When changing behavior:
 After changing behavior:
 
 - Validate the affected logic.
+- Update `CHANGELOG.md` in the same piece of work for every meaningful bug fix, feature, behavior change, compatibility change, or performance improvement.
+- Add new changelog entries under `## Unreleased`; do not wait until release preparation to reconstruct completed work.
+- Keep changelog entries concise and user-facing. Do not add entries for trivial edits that do not affect the project or its users.
 - Update persistent documentation when the accepted behavior, metric contract, architecture, or testing requirements change.
 - Explicitly call out known limitations that remain relevant to the task.
 
@@ -73,15 +76,23 @@ Do not replace the existing architecture simply because another architecture app
 
 Template remnants or unused code may be removed only when the task includes cleanup or their removal is necessary for the requested change.
 
+## Git authorization
+
+- A request to `commit` means commit the intended current changes locally without pushing.
+- A request to `push` means commit any intended pending changes, then push all local commits to `origin/main`.
+- A request to `commit and push` means commit the intended current changes, then push all local commits to `origin/main`.
+- A request to `release vX.X.X` authorizes the complete release workflow documented in `docs/RELEASE.md`, including the release commit, push, version tag, tag push, and release verification.
+- Never create or push a release tag from a normal commit or push request.
+
 ## Release preparation
 
 Before preparing, committing, tagging, or publishing a new version:
 
-- Read and follow `docs/GITHUB.md` and `docs/RELEASE.md`.
+- Read and follow `docs/RELEASE.md`.
 - Review all maintained Markdown documentation for statements affected by the release.
 - Update the changelog, version references, supported Minecraft versions, feature descriptions, architecture, metric semantics, testing instructions, and release instructions wherever relevant.
 - Ensure documentation describes the final implemented behavior and does not retain outdated claims.
-- Do not create commits, push changes, create tags, or publish releases without explicit approval.
+- Do not create commits, push changes, create tags, or publish releases without the corresponding explicit instruction described above.
 
 ## Source of truth
 
