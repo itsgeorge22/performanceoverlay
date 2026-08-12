@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.LongSupplier;
 
 public final class FpsTracker {
     private static final long NS_PER_SEC = 1_000_000_000L;
@@ -210,6 +211,11 @@ public final class FpsTracker {
     }
 
     private BenchmarkStatus startBenchmark() {
+        Path dir = FabricLoader.getInstance().getConfigDir().resolve("performanceoverlay").resolve("benchmarks");
+        return startBenchmark(dir, LocalDateTime.now(), System::nanoTime);
+    }
+
+    BenchmarkStatus startBenchmark(Path dir, LocalDateTime now, LongSupplier nanoTime) {
         // Defensive: close any leftover writer
         if (benchmarkWriter != null) {
             try {
@@ -224,9 +230,6 @@ public final class FpsTracker {
         BenchmarkSettings settings = liveSettings;
 
         try {
-            Path dir = FabricLoader.getInstance().getConfigDir().resolve("performanceoverlay").resolve("benchmarks");
-            LocalDateTime now = LocalDateTime.now();
-
             BenchmarkOutput output = createBenchmarkOutput(dir, now);
             Path file = output.path();
             benchmarkWriter = output.writer();
@@ -265,7 +268,7 @@ public final class FpsTracker {
             resetGcBaseline();
 
             benchmarkActive = true;
-            benchmarkStartNs = System.nanoTime();
+            benchmarkStartNs = nanoTime.getAsLong();
             benchmarkFlushCounter = 0;
             benchmarkFrameCount = 0;
 
@@ -369,7 +372,10 @@ public final class FpsTracker {
     }
 
     public void onFrame(boolean paused) {
-        long nowNs = System.nanoTime();
+        onFrame(paused, System.nanoTime());
+    }
+
+    void onFrame(boolean paused, long nowNs) {
 
         if (!config.enabled && !benchmarkActive) {
             lastFrameStartNs = nowNs;

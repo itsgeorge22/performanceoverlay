@@ -26,7 +26,7 @@ Important classes:
 
 The repository also contains example mixin source/config remnants. `fabric.mod.json` currently declares no `mixins` property, so those mixins are not registered by the mod metadata.
 
-Automated metric tests are under `src/test/java`. They exercise the production rolling-calculation methods with deterministic frame timestamps and durations through JUnit Jupiter.
+Automated tests are under `src/test/java`. They exercise production metric calculations, pause handling, and benchmark lifecycle behavior with deterministic frame timestamps and durations through JUnit Jupiter.
 
 ## Runtime initialization
 
