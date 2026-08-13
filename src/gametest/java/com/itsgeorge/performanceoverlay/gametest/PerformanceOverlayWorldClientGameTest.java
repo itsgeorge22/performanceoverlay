@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 
@@ -61,7 +63,53 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifyToggleKey(context, tracker, config);
             verifyCycleLayoutKey(context, tracker, config);
             verifyResetKey(context, tracker, config);
+            verifyBenchmarkKey(context, tracker, config);
         }
+    }
+
+    private static void verifyBenchmarkKey(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.autoBenchmarkDurationSec = 0;
+            PerformanceOverlayClient.setConfig(config);
+        });
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> tracker.isBenchmarkActive());
+        String benchmarkFilePath = context.computeOnClient(client -> getStringField(tracker, "benchmarkFilePath"));
+        Path benchmarkFile = Path.of(benchmarkFilePath);
+
+        context.waitTicks(20);
+        long capturedFrames = context.computeOnClient(client -> getLongField(tracker, "benchmarkFrameCount"));
+        if (capturedFrames <= 0) {
+            throw new AssertionError("F10 benchmark did not capture any rendered frames");
+        }
+        context.takeScreenshot("overlay-f10-benchmark-running");
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> !tracker.isBenchmarkActive());
+
+        if (!Files.isRegularFile(benchmarkFile)) {
+            throw new AssertionError("F10 benchmark did not save its CSV: " + benchmarkFile);
+        }
+
+        try {
+            String csv = Files.readString(benchmarkFile, StandardCharsets.UTF_8);
+            if (!csv.contains("# EndReason: MANUAL") || !csv.contains("# SUMMARY")) {
+                throw new AssertionError("Manually stopped F10 benchmark did not finalize its CSV correctly");
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Could not read the F10 benchmark CSV", e);
+        }
+
+        if (tracker.getBenchmarkSummary().avg() <= 0) {
+            throw new AssertionError("F10 benchmark produced an empty final summary");
+        }
+        context.takeScreenshot("overlay-f10-benchmark-stopped");
     }
 
     private static void verifyResetKey(
@@ -406,6 +454,26 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             return sizeField.getInt(tracker);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Could not inspect Performance Overlay frame history", e);
+        }
+    }
+
+    private static long getLongField(FpsTracker tracker, String fieldName) {
+        try {
+            Field field = FpsTracker.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.getLong(tracker);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not inspect Performance Overlay field: " + fieldName, e);
+        }
+    }
+
+    private static String getStringField(FpsTracker tracker, String fieldName) {
+        try {
+            Field field = FpsTracker.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return (String) field.get(tracker);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not inspect Performance Overlay field: " + fieldName, e);
         }
     }
 
