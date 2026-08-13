@@ -19,6 +19,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Refresh the GC measurement baseline whenever rolling statistics are reset.
 - [x] Fix the missing Max Spike separator in the three-line layout.
 - [x] Add validation for loaded configuration values.
+- [x] Prevent the Danger FPS color threshold from exceeding Warning FPS.
 - [x] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.
 - [x] Prevent benchmark filename collisions from overwriting existing CSV files.
 - [x] Report benchmark CSV write and finalization failures immediately and clear stale progress state.

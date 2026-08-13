@@ -35,6 +35,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setTitle(Component.literal("Performance Overlay"))
                 .setSavingRunnable(() -> {
                     finalizePresetOnSave(working, initial.preset);
+                    working.validate();
                     PerformanceOverlayClient.setConfig(working);
                     ConfigIO.save(working);
                 });
@@ -354,7 +355,7 @@ public final class PerformanceOverlayConfigScreen {
                 .setDefaultValue(defaults.dangerFps)
                 .setMin(1)
                 .setMax(500)
-                .setTooltip(Component.literal("Below this = red."))
+                .setTooltip(Component.literal("Below this = red. Cannot exceed Warning FPS."))
                 .setSaveConsumer(v -> working.dangerFps = clamp(v, 1, 500))
                 .build());
 

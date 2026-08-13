@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Prevented the Danger FPS color threshold from exceeding Warning FPS.
 - Prevented F10 from starting another benchmark while a write error is being reported.
 - Reset the GC measurement baseline whenever overlay statistics are reset.
 - Limited benchmark starts to loaded worlds and finalized active runs when leaving a world or server.

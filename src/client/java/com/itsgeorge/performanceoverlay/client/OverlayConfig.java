@@ -98,6 +98,7 @@ public class OverlayConfig {
 
         warningFps = clamp(warningFps, 1, 500);
         dangerFps = clamp(dangerFps, 1, 500);
+        dangerFps = Math.min(dangerFps, warningFps);
 
         return this;
     }

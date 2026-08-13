@@ -92,7 +92,19 @@ final class ConfigValidationTest {
         assertEquals(5, config.stutterThresholdMs);
         assertEquals(60, config.stutterWindowSec);
         assertEquals(1, config.warningFps);
-        assertEquals(500, config.dangerFps);
+        assertEquals(1, config.dangerFps);
+    }
+
+    @Test
+    void dangerThresholdCannotExceedWarningThreshold() {
+        OverlayConfig config = new OverlayConfig();
+        config.warningFps = 30;
+        config.dangerFps = 60;
+
+        config.validate();
+
+        assertEquals(30, config.warningFps);
+        assertEquals(30, config.dangerFps);
     }
 
     @Test
