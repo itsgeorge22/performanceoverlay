@@ -1,0 +1,19 @@
+{
+    "schemaVersion": 1,
+    "id": "performanceoverlay-client-tests",
+    "version": "1.0.0",
+    "name": "Performance Overlay Client Tests",
+    "environment": "client",
+    "entrypoints": {
+        "fabric-client-gametest": [
+            "com.itsgeorge.performanceoverlay.gametest.PerformanceOverlayStartupClientGameTest"
+        ]
+    },
+    "depends": {
+        "fabricloader": "*",
+        "minecraft": "1.21.11",
+        "fabric-api": "*",
+        "cloth-config": "*",
+        "performanceoverlay": "*"
+    }
+}

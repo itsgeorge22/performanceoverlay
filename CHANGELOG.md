@@ -1,5 +1,8 @@
 # Changelog
 
+## x.x.x [WIP]
+- Added an automated Minecraft 1.21.11 startup test for the mod and its required dependencies.
+
 ## 1.0.2
 - Reconfirmed compatibility with Minecraft 1.21.9, 1.21.10, and 1.21.11 after the latest fixes.
 - Pinned the Fabric Loom build plugin for repeatable builds.
