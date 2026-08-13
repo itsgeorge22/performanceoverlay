@@ -54,7 +54,7 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 
 ### 4. Settings
 
-- [ ] Open the Performance Overlay configuration screen successfully.
+- [x] Open the Performance Overlay configuration screen through its Mod Menu integration and confirm its title loads successfully.
 - [ ] Verify every switch, number field, and enum value is copied into the working configuration.
 - [ ] Save every supported setting and confirm it persists after reopening the screen.
 - [ ] Confirm Default, Responsive, and Smooth presets apply their complete values and remain selected.

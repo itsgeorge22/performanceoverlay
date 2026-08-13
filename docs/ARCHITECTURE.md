@@ -27,7 +27,7 @@ Important classes:
 
 Automated tests are under `src/test/java`. They exercise production metric calculations, pause handling, benchmark lifecycle behavior, and CSV structure with deterministic frame timestamps and durations through JUnit Jupiter.
 
-Minecraft client integration tests are isolated under `src/gametest`. They are loaded only by the Fabric client-game-test run and are not packaged in the release JAR. The current tests launch Minecraft 1.21.11, verify that Performance Overlay and its required dependencies initialize, enter a temporary single-player world, wait for rendered chunks, require positive live FPS text, verify all three text layouts, all six screen positions, and both scale limits, and simulate F7-F10 to verify visibility, layout cycling, statistics reset guards, manual benchmarking, and same-tick automatic-stop and write-error protections.
+Minecraft client integration tests are isolated under `src/gametest`. They are loaded only by the Fabric client-game-test run and are not packaged in the release JAR. The current tests launch Minecraft 1.21.11, verify that Performance Overlay and its required dependencies initialize, enter a temporary single-player world, wait for rendered chunks, require positive live FPS text, verify all three text layouts, all six screen positions, both scale limits, and the Mod Menu configuration-screen entry, and simulate F7-F10 to verify visibility, layout cycling, statistics reset guards, manual benchmarking, and same-tick automatic-stop and write-error protections.
 
 ## Runtime initialization
 

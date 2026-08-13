@@ -3,6 +3,7 @@ package com.itsgeorge.performanceoverlay.gametest;
 import com.itsgeorge.performanceoverlay.PerformanceOverlayClient;
 import com.itsgeorge.performanceoverlay.client.FpsTracker;
 import com.itsgeorge.performanceoverlay.client.OverlayConfig;
+import com.itsgeorge.performanceoverlay.client.PerformanceOverlayModMenu;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -66,7 +67,20 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifyResetKey(context, tracker, config);
             verifyBenchmarkKey(context, tracker, config);
             verifySameTickBenchmarkGuards(context, tracker, config);
+            verifySettingsScreenOpens(context);
         }
+    }
+
+    private static void verifySettingsScreenOpens(ClientGameTestContext context) {
+        context.runOnClient(client -> client.setScreen(
+                new PerformanceOverlayModMenu().getModConfigScreenFactory().create(client.screen)
+        ));
+        context.waitFor(client -> client.screen != null
+                && "Performance Overlay".equals(client.screen.getTitle().getString()));
+        context.takeScreenshot("performance-overlay-settings");
+
+        context.runOnClient(client -> client.setScreen(null));
+        context.waitFor(client -> client.screen == null);
     }
 
     private static void verifySameTickBenchmarkGuards(
