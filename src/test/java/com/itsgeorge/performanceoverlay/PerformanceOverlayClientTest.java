@@ -36,4 +36,11 @@ final class PerformanceOverlayClientTest {
     void completedDurationDisplaysOneHundredPercent() {
         assertEquals(100, PerformanceOverlayClient.benchmarkProgressPercent(7, 7));
     }
+
+    @Test
+    void automaticProgressIsBoundedFromZeroToOneHundredPercent() {
+        assertEquals(0, PerformanceOverlayClient.benchmarkProgressPercent(0, 7));
+        assertEquals(43, PerformanceOverlayClient.benchmarkProgressPercent(3, 7));
+        assertEquals(100, PerformanceOverlayClient.benchmarkProgressPercent(8, 7));
+    }
 }

@@ -69,8 +69,50 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifyResetKey(context, tracker, config);
             verifyBenchmarkKey(context, tracker, config);
             verifySameTickBenchmarkGuards(context, tracker, config);
+            verifyHiddenOverlayBenchmark(context, tracker, config);
             verifySettingsScreenOpens(context);
         }
+    }
+
+    private static void verifyHiddenOverlayBenchmark(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = false;
+            config.autoBenchmarkDurationSec = 0;
+            config.showFps = false;
+            config.showAvg = false;
+            config.show1Low = false;
+            config.show01Low = false;
+            config.showFrametime = false;
+            config.showStutters = false;
+            config.showMaxSpike = false;
+            config.showGc = false;
+            config.showMemory = false;
+            PerformanceOverlayClient.setConfig(config);
+        });
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> tracker.isBenchmarkActive());
+        String benchmarkPath = context.computeOnClient(client -> getStringField(tracker, "benchmarkFilePath"));
+        context.waitTicks(20);
+
+        long capturedFrames = context.computeOnClient(client -> getLongField(tracker, "benchmarkFrameCount"));
+        if (capturedFrames <= 0) {
+            throw new AssertionError("Hidden-overlay benchmark did not capture rendered frames");
+        }
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> !tracker.isBenchmarkActive());
+        assertCompleteBenchmarkCsv(Path.of(benchmarkPath), "MANUAL", true);
+
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.showFps = true;
+            PerformanceOverlayClient.setConfig(config);
+        });
     }
 
     private static void verifyLiveMetrics(
@@ -129,7 +171,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         if (tracker.isBenchmarkActive()) {
             throw new AssertionError("Same-tick F10 restarted a benchmark after automatic stop");
         }
-        assertCsvEndReason(Path.of(automaticPath), "AUTO_DURATION");
+        assertCompleteBenchmarkCsv(Path.of(automaticPath), "AUTO_DURATION", false);
         context.takeScreenshot("overlay-f10-auto-stop-guard");
 
         context.runOnClient(client -> {
@@ -147,18 +189,66 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         if (tracker.isBenchmarkActive()) {
             throw new AssertionError("Same-tick F10 restarted a benchmark while a write error was reported");
         }
+        if (tracker.consumePendingBenchmarkStatus() != null) {
+            throw new AssertionError("Write-error status remained stale after it was reported");
+        }
         context.takeScreenshot("overlay-f10-write-error-guard");
     }
 
-    private static void assertCsvEndReason(Path benchmarkFile, String expectedReason) {
+    private static void assertCompleteBenchmarkCsv(
+            Path benchmarkFile,
+            String expectedReason,
+            boolean requireNonZeroRollingMetrics
+    ) {
         try {
-            String csv = Files.readString(benchmarkFile, StandardCharsets.UTF_8);
-            if (!csv.contains("# EndReason: " + expectedReason) || !csv.contains("# SUMMARY")) {
-                throw new AssertionError("Benchmark CSV did not finalize with end reason " + expectedReason);
+            java.util.List<String> lines = Files.readAllLines(benchmarkFile, StandardCharsets.UTF_8);
+            String csv = String.join("\n", lines);
+            if (!lines.get(0).equals("# PerformanceOverlay Benchmark")
+                    || !csv.contains("# Minecraft: 1.21.11")
+                    || !csv.contains("# LowMethod: ")
+                    || !csv.contains("# EndReason: " + expectedReason)
+                    || !csv.contains("# SUMMARY")) {
+                throw new AssertionError("Benchmark CSV structure was incomplete for " + expectedReason);
+            }
+
+            String header = "elapsed_ms,frame_ms,inst_fps,fps_smoothed,avg_fps,low1_fps,low01_fps,"
+                    + "stutters,stutter_percent,max_spike_ms,gc_time_delta_ms,mem_used_mb,mem_max_mb";
+            int headerIndex = lines.indexOf(header);
+            int footerIndex = lines.indexOf("# EndReason: " + expectedReason);
+            if (headerIndex < 0 || footerIndex <= headerIndex + 1) {
+                throw new AssertionError("Benchmark CSV did not contain ordered frame rows");
+            }
+
+            long previousElapsed = -1;
+            boolean completeRollingRow = false;
+            for (int i = headerIndex + 1; i < footerIndex; i++) {
+                String[] columns = lines.get(i).split(",", -1);
+                if (columns.length != 13) {
+                    throw new AssertionError("Benchmark row did not contain 13 columns");
+                }
+                long elapsed = Long.parseLong(columns[0]);
+                if (elapsed < previousElapsed) {
+                    throw new AssertionError("Benchmark rows were not ordered by elapsed time");
+                }
+                previousElapsed = elapsed;
+                completeRollingRow |= positive(columns[3])
+                        && positive(columns[4])
+                        && positive(columns[5])
+                        && positive(columns[6])
+                        && positive(columns[11])
+                        && positive(columns[12]);
+            }
+
+            if (requireNonZeroRollingMetrics && !completeRollingRow) {
+                throw new AssertionError("Hidden-overlay CSV did not contain complete rolling metric values");
             }
         } catch (IOException e) {
             throw new AssertionError("Could not read benchmark CSV: " + benchmarkFile, e);
         }
+    }
+
+    private static boolean positive(String value) {
+        return !value.isEmpty() && Double.parseDouble(value) > 0;
     }
 
     private static void verifyBenchmarkKey(
@@ -202,14 +292,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             throw new AssertionError("F10 benchmark did not save its CSV: " + benchmarkFile);
         }
 
-        try {
-            String csv = Files.readString(benchmarkFile, StandardCharsets.UTF_8);
-            if (!csv.contains("# EndReason: MANUAL") || !csv.contains("# SUMMARY")) {
-                throw new AssertionError("Manually stopped F10 benchmark did not finalize its CSV correctly");
-            }
-        } catch (IOException e) {
-            throw new AssertionError("Could not read the F10 benchmark CSV", e);
-        }
+        assertCompleteBenchmarkCsv(benchmarkFile, "MANUAL", false);
 
         if (tracker.getBenchmarkSummary().avg() <= 0) {
             throw new AssertionError("F10 benchmark produced an empty final summary");

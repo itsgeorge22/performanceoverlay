@@ -74,13 +74,13 @@ These tests validate integration only. Exact metric calculations remain covered 
 
 ### 6. Benchmark lifecycle and export
 
-- [ ] Confirm F10 does nothing in menus and starts a benchmark inside a world.
-- [ ] Confirm a benchmark continues when the overlay is hidden.
-- [ ] Confirm automatic progress reaches 100%.
-- [ ] Confirm manual and automatic stops both work.
-- [ ] Confirm the CSV contains metadata, ordered frame rows, an end reason, and `# SUMMARY`.
-- [ ] Confirm the CSV remains complete when overlay metrics are hidden.
-- [ ] Confirm write failures produce an error instead of leaving stale benchmark state.
+- [x] Confirm F10 does nothing in menus and starts a benchmark inside a world.
+- [x] Confirm a benchmark continues when the overlay is hidden.
+- [x] Confirm automatic progress reaches 100%.
+- [x] Confirm manual and automatic stops both work.
+- [x] Confirm the CSV contains metadata, ordered frame rows, an end reason, and `# SUMMARY`.
+- [x] Confirm the CSV remains complete when overlay metrics are hidden.
+- [x] Confirm write failures produce an error instead of leaving stale benchmark state.
 
 ### 7. World and shutdown lifecycle
 
