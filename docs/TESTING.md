@@ -50,7 +50,7 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 - [x] Press F9 and confirm accumulated frame history is cleared and sampling resumes afterward.
 - [x] Press F10 to start and manually stop a benchmark, confirm frames are captured, and verify the CSV is finalized.
 - [x] Confirm F9 is ignored while the overlay is hidden and blocked without interrupting an active benchmark.
-- [ ] Confirm same-tick benchmark stop/error guards do not start another run.
+- [x] Confirm queued F10 presses cannot start another run on the same tick as automatic stop or write-error reporting.
 
 ### 4. Settings
 

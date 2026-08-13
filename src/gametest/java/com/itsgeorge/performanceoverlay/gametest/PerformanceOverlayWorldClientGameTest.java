@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,6 +65,64 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifyCycleLayoutKey(context, tracker, config);
             verifyResetKey(context, tracker, config);
             verifyBenchmarkKey(context, tracker, config);
+            verifySameTickBenchmarkGuards(context, tracker, config);
+        }
+    }
+
+    private static void verifySameTickBenchmarkGuards(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.autoBenchmarkDurationSec = 1;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> tracker.isBenchmarkActive());
+        String automaticPath = context.computeOnClient(client -> getStringField(tracker, "benchmarkFilePath"));
+        context.waitTicks(5);
+
+        context.getInput().holdKeyFor(GLFW.GLFW_KEY_F10, 0);
+        context.runOnClient(client -> {
+            setStaticLongField(PerformanceOverlayClient.class, "benchmarkStartedAtNs", System.nanoTime() - 1_000_000_000L);
+            setStaticLongField(PerformanceOverlayClient.class, "benchmarkAutoStopAtNs", System.nanoTime() - 1);
+        });
+        context.waitTick();
+
+        if (tracker.isBenchmarkActive()) {
+            throw new AssertionError("Same-tick F10 restarted a benchmark after automatic stop");
+        }
+        assertCsvEndReason(Path.of(automaticPath), "AUTO_DURATION");
+        context.takeScreenshot("overlay-f10-auto-stop-guard");
+
+        context.runOnClient(client -> {
+            config.autoBenchmarkDurationSec = 0;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> tracker.isBenchmarkActive());
+        context.waitTicks(5);
+
+        context.getInput().holdKeyFor(GLFW.GLFW_KEY_F10, 0);
+        context.runOnClient(client -> injectBenchmarkWriteFailure(tracker));
+        context.waitTick();
+
+        if (tracker.isBenchmarkActive()) {
+            throw new AssertionError("Same-tick F10 restarted a benchmark while a write error was reported");
+        }
+        context.takeScreenshot("overlay-f10-write-error-guard");
+    }
+
+    private static void assertCsvEndReason(Path benchmarkFile, String expectedReason) {
+        try {
+            String csv = Files.readString(benchmarkFile, StandardCharsets.UTF_8);
+            if (!csv.contains("# EndReason: " + expectedReason) || !csv.contains("# SUMMARY")) {
+                throw new AssertionError("Benchmark CSV did not finalize with end reason " + expectedReason);
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Could not read benchmark CSV: " + benchmarkFile, e);
         }
     }
 
@@ -508,6 +567,26 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             return (String) field.get(tracker);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Could not inspect Performance Overlay field: " + fieldName, e);
+        }
+    }
+
+    private static void setStaticLongField(Class<?> owner, String fieldName, long value) {
+        try {
+            Field field = owner.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.setLong(null, value);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not set Performance Overlay field: " + fieldName, e);
+        }
+    }
+
+    private static void injectBenchmarkWriteFailure(FpsTracker tracker) {
+        try {
+            Method method = FpsTracker.class.getDeclaredMethod("handleBenchmarkWriteFailure", IOException.class);
+            method.setAccessible(true);
+            method.invoke(tracker, new IOException("Injected client-test write failure"));
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not inject the benchmark writer failure", e);
         }
     }
 
