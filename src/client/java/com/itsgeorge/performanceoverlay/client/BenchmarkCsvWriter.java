@@ -8,11 +8,13 @@ import java.util.concurrent.TimeUnit;
 
 final class BenchmarkCsvWriter {
     static final int DEFAULT_QUEUE_CAPACITY = 4096;
+    static final long DEFAULT_FINISH_TIMEOUT_MS = 5000;
 
     private final Writer writer;
     private final ArrayBlockingQueue<Command> queue;
     private final CountDownLatch completed = new CountDownLatch(1);
     private final Thread worker;
+    private final long finishTimeoutMs;
 
     private volatile IOException failure;
     private volatile boolean acceptingRows = true;
@@ -22,8 +24,13 @@ final class BenchmarkCsvWriter {
     }
 
     BenchmarkCsvWriter(Writer writer, int queueCapacity) {
+        this(writer, queueCapacity, DEFAULT_FINISH_TIMEOUT_MS);
+    }
+
+    BenchmarkCsvWriter(Writer writer, int queueCapacity, long finishTimeoutMs) {
         this.writer = writer;
         this.queue = new ArrayBlockingQueue<>(queueCapacity);
+        this.finishTimeoutMs = Math.max(1, finishTimeoutMs);
         this.worker = new Thread(this::writeLoop, "PerformanceOverlay-BenchmarkWriter");
         this.worker.setDaemon(true);
         this.worker.start();
@@ -50,9 +57,10 @@ final class BenchmarkCsvWriter {
     ) throws IOException {
         acceptingRows = false;
         FooterCommand footer = new FooterCommand(endReason, framesLogged, framesSummary, summary);
+        long deadlineNs = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(finishTimeoutMs);
 
         try {
-            while (!queue.offer(footer, 50, TimeUnit.MILLISECONDS)) {
+            while (true) {
                 IOException currentFailure = failure;
                 if (currentFailure != null) {
                     throw currentFailure;
@@ -60,8 +68,20 @@ final class BenchmarkCsvWriter {
                 if (completed.getCount() == 0) {
                     throw completedWithoutResult();
                 }
+
+                long remainingNs = deadlineNs - System.nanoTime();
+                if (remainingNs <= 0) {
+                    throw finishTimedOut();
+                }
+                if (queue.offer(footer, Math.min(remainingNs, TimeUnit.MILLISECONDS.toNanos(50)), TimeUnit.NANOSECONDS)) {
+                    break;
+                }
             }
-            completed.await();
+
+            long remainingNs = deadlineNs - System.nanoTime();
+            if (remainingNs <= 0 || !completed.await(remainingNs, TimeUnit.NANOSECONDS)) {
+                throw finishTimedOut();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             abort();
@@ -152,6 +172,11 @@ final class BenchmarkCsvWriter {
         return currentFailure != null
                 ? currentFailure
                 : new IOException("The benchmark writer stopped before finalizing the CSV");
+    }
+
+    private IOException finishTimedOut() {
+        abort();
+        return new IOException("Timed out after " + finishTimeoutMs + " ms while finalizing the benchmark CSV");
     }
 
     record BenchmarkRow(

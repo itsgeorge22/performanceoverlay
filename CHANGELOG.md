@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Limited benchmark CSV finalization waits to five seconds instead of allowing an indefinite game freeze.
 - Prevented the Danger FPS color threshold from exceeding Warning FPS.
 - Prevented F10 from starting another benchmark while a write error is being reported.
 - Reset the GC measurement baseline whenever overlay statistics are reset.

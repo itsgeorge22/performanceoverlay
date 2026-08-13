@@ -150,7 +150,7 @@ Benchmark state is stored directly in `FpsTracker`:
 
 Each measured benchmark frame creates one numeric row snapshot and submits it to a bounded 4,096-row queue without waiting. A dedicated daemon thread formats queued values as CSV and writes them in capture order.
 
-The background writer is flushed every 120 logged frames. Normal stop waits for the bounded queue to drain, writes the summary footer, flushes, and closes the file before reporting that it was saved. If the queue fills, the benchmark aborts instead of blocking frame rendering.
+The background writer is flushed every 120 logged frames. Normal stop waits up to five seconds for the bounded queue to drain, writes the summary footer, flushes, and closes the file before reporting that it was saved. If the queue fills, the benchmark aborts instead of blocking frame rendering. If finalization exceeds the timeout, the writer is interrupted and the file is reported as incomplete.
 
 If row submission fails or the background writer reports an I/O failure, the tracker stops the run and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, consumes any F10 press from that tick, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
 

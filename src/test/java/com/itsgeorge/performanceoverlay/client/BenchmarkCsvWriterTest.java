@@ -97,6 +97,32 @@ final class BenchmarkCsvWriterTest {
         assertTrue(error.getMessage().contains("disk full"));
     }
 
+    @Test
+    void finishTimesOutInsteadOfWaitingIndefinitely() throws Exception {
+        BlockingWriter output = new BlockingWriter();
+        BenchmarkCsvWriter writer = new BenchmarkCsvWriter(output, 1, 50);
+
+        try {
+            writer.enqueue(row(1, 16_000_000));
+            assertTrue(output.awaitWriteStarted());
+
+            IOException error = assertThrows(
+                    IOException.class,
+                    () -> writer.finish(
+                            FpsTracker.BenchmarkEndReason.MANUAL,
+                            1,
+                            1,
+                            new FpsTracker.BenchmarkSummary(0, 0, 0, 0, 0, 0)
+                    )
+            );
+
+            assertTrue(error.getMessage().contains("Timed out after 50 ms"));
+        } finally {
+            output.release();
+            writer.abort();
+        }
+    }
+
     private static BenchmarkCsvWriter.BenchmarkRow row(long elapsedMs, long frameNs) {
         return row(elapsedMs, frameNs, true);
     }

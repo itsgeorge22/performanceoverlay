@@ -23,6 +23,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.
 - [x] Prevent benchmark filename collisions from overwriting existing CSV files.
 - [x] Report benchmark CSV write and finalization failures immediately and clear stale progress state.
+- [x] Limit benchmark CSV finalization waits to five seconds.
 - [x] Prevent same-tick F10 presses from restarting a benchmark while a write error is reported.
 - [x] Finalize active benchmark CSV files during normal Minecraft shutdown.
 - [x] Make benchmark start, measurement, and stopping independent of overlay visibility.
