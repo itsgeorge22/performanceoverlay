@@ -47,7 +47,7 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 
 - [x] Press F7 and confirm both configuration state and rendered overlay visibility hide and reappear.
 - [x] Press F8 and confirm state, line structure, and rendering cycle through One line, Three lines, Column, then One line.
-- [ ] Press F9 and confirm rolling statistics reset.
+- [x] Press F9 and confirm accumulated frame history is cleared and sampling resumes afterward.
 - [ ] Press F10 and confirm a benchmark starts and stops.
 - [ ] Confirm F9 is ignored while the overlay is hidden and blocked during a benchmark.
 - [ ] Confirm same-tick benchmark stop/error guards do not start another run.

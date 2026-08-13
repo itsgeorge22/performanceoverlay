@@ -60,6 +60,41 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifyScaleLimits(context, tracker, config);
             verifyToggleKey(context, tracker, config);
             verifyCycleLayoutKey(context, tracker, config);
+            verifyResetKey(context, tracker, config);
+        }
+    }
+
+    private static void verifyResetKey(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.textLayout = OverlayConfig.TextLayout.ONE_LINE;
+            config.fpsUpdateMs = 250;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitTicks(30);
+
+        int historyBefore = context.computeOnClient(client -> getHistorySize(tracker));
+        if (historyBefore < 20) {
+            throw new AssertionError("Not enough frame history was collected before testing F9: " + historyBefore);
+        }
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F9);
+        int historyAfter = context.computeOnClient(client -> getHistorySize(tracker));
+        if (historyAfter >= historyBefore / 2 || historyAfter > 10) {
+            throw new AssertionError(
+                    "F9 did not reset frame history; samples before=" + historyBefore + ", after=" + historyAfter
+            );
+        }
+        context.takeScreenshot("overlay-f9-stats-reset");
+
+        context.waitTicks(5);
+        int resumedHistory = context.computeOnClient(client -> getHistorySize(tracker));
+        if (resumedHistory <= historyAfter) {
+            throw new AssertionError("Frame sampling did not resume after the F9 reset");
         }
     }
 
@@ -361,6 +396,16 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             return tracker;
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Could not inspect the active Performance Overlay tracker", e);
+        }
+    }
+
+    private static int getHistorySize(FpsTracker tracker) {
+        try {
+            Field sizeField = FpsTracker.class.getDeclaredField("size");
+            sizeField.setAccessible(true);
+            return sizeField.getInt(tracker);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not inspect Performance Overlay frame history", e);
         }
     }
 
