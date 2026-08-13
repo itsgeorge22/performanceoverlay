@@ -40,7 +40,7 @@ This roadmap defines the planned development order. It does not assign release d
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.
 
-## Phase 2 — Lock down current measurement behavior
+## Phase 2 — Lock down current measurement behavior [CURRENT]
 
 - [x] Test average FPS.
 - [x] Test percentile and mean-worst 1% and 0.1% lows.
