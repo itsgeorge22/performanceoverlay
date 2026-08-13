@@ -1,7 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
-- Added automated Minecraft 1.21.11 startup, overlay rendering, metric visibility, configuration persistence, guarded F7-F10 behavior, and benchmark lifecycle/export tests.
+- Added automated Minecraft 1.21.11 startup, overlay rendering, metric visibility, configuration persistence, guarded F7-F10 behavior, benchmark export, and world-lifecycle tests.
 
 ## 1.0.2
 - Reconfirmed compatibility with Minecraft 1.21.9, 1.21.10, and 1.21.11 after the latest fixes.

@@ -7,6 +7,7 @@ import com.itsgeorge.performanceoverlay.client.PerformanceOverlayModMenu;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.minecraft.world.level.Level;
 import org.lwjgl.glfw.GLFW;
 
 import javax.imageio.ImageIO;
@@ -45,6 +46,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             return getActiveTracker();
         });
 
+        String worldLeftBenchmarkPath;
         try (TestSingleplayerContext singleplayer = context.worldBuilder().create()) {
             singleplayer.getClientWorld().waitForChunksRender();
 
@@ -71,7 +73,43 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifySameTickBenchmarkGuards(context, tracker, config);
             verifyHiddenOverlayBenchmark(context, tracker, config);
             verifySettingsScreenOpens(context);
+            worldLeftBenchmarkPath = verifyDimensionChangeAndPrepareWorldLeave(
+                    context,
+                    singleplayer,
+                    tracker,
+                    config
+            );
         }
+
+        context.waitFor(client -> !tracker.isBenchmarkActive());
+        assertCompleteBenchmarkCsv(Path.of(worldLeftBenchmarkPath), "WORLD_LEFT", false);
+    }
+
+    private static String verifyDimensionChangeAndPrepareWorldLeave(
+            ClientGameTestContext context,
+            TestSingleplayerContext singleplayer,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.autoBenchmarkDurationSec = 0;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.getInput().pressKey(GLFW.GLFW_KEY_F10);
+        context.waitFor(client -> tracker.isBenchmarkActive());
+        String benchmarkPath = context.computeOnClient(client -> getStringField(tracker, "benchmarkFilePath"));
+
+        singleplayer.getServer().runCommand(
+                "execute as @a in minecraft:the_nether run tp @s 0 128 0"
+        );
+        context.waitFor(client -> client.level != null && client.level.dimension() == Level.NETHER);
+        context.waitTicks(5);
+        if (!tracker.isBenchmarkActive()) {
+            throw new AssertionError("Dimension change stopped the active benchmark");
+        }
+
+        return benchmarkPath;
     }
 
     private static void verifyHiddenOverlayBenchmark(

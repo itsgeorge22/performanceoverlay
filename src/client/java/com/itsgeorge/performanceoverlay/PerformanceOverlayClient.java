@@ -268,11 +268,14 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-            if (!tracker.isBenchmarkActive()) {
+            FpsTracker.BenchmarkStatus status = finalizeActiveBenchmark(
+                    tracker,
+                    FpsTracker.BenchmarkEndReason.GAME_SHUTDOWN
+            );
+            if (status == null) {
                 return;
             }
 
-            FpsTracker.BenchmarkStatus status = tracker.stopBenchmark(FpsTracker.BenchmarkEndReason.GAME_SHUTDOWN);
             if (status.error()) {
                 LOGGER.error("Could not finalize active benchmark during game shutdown: {}", status.message());
             }
@@ -419,6 +422,13 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         return !benchmarkAutoStoppedThisTick
                 && !benchmarkErrorReportedThisTick
                 && (benchmarkActive || worldLoaded);
+    }
+
+    static FpsTracker.BenchmarkStatus finalizeActiveBenchmark(
+            FpsTracker activeTracker,
+            FpsTracker.BenchmarkEndReason reason
+    ) {
+        return activeTracker.isBenchmarkActive() ? activeTracker.stopBenchmark(reason) : null;
     }
 
     static int benchmarkProgressPercent(long elapsedSec, long durationSec) {

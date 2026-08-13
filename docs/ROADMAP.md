@@ -73,7 +73,7 @@ Any I/O redesign must preserve current CSV data, support long runs safely, repor
 - [ ] Port and verify Minecraft 26.2 as the next primary version target.
 - [ ] Consider a separate Minecraft 26.1 build only if there is user demand.
 - [ ] Continue porting and verifying later stable releases as they become available.
-- [ ] Add the Minecraft client integration suite defined in `docs/TESTING.md`.
+- [x] Add and run the Minecraft 1.21.11 client integration suite defined in `docs/TESTING.md`.
 - [ ] Run compatibility smoke tests in CI for every version declared by each build.
 
 The declared compatibility range of each JAR must remain limited to versions verified with that build. Supporting future releases is an ongoing maintenance target, not a claim that existing JARs will automatically work on them.

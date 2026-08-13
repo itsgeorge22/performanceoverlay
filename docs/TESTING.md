@@ -84,15 +84,15 @@ These tests validate integration only. Exact metric calculations remain covered 
 
 ### 7. World and shutdown lifecycle
 
-- [ ] Confirm dimension changes keep the benchmark active.
-- [ ] Confirm leaving a world or server ends it with `WORLD_LEFT`.
-- [ ] Confirm normal Minecraft shutdown finalizes an active CSV with `GAME_SHUTDOWN`.
+- [x] Confirm a real-client dimension change keeps the benchmark active.
+- [x] Confirm leaving the client test world ends the real benchmark CSV with `WORLD_LEFT`.
+- [x] Confirm the normal Minecraft shutdown handler finalizes an active CSV with `GAME_SHUTDOWN`.
 
 ### 8. Supported-version matrix
 
 - [ ] Run at least the startup, world-load, overlay-render, and short-benchmark tests on Minecraft 1.21.9.
 - [ ] Run the same compatibility smoke tests on Minecraft 1.21.10.
-- [ ] Run the complete client integration suite on the 1.21.11 build target.
+- [x] Run the complete client integration suite on the 1.21.11 build target.
 - [ ] Add a separate client integration target for Minecraft 26.2 when that port exists.
 - [ ] Require each declared supported version to pass before release.
 
