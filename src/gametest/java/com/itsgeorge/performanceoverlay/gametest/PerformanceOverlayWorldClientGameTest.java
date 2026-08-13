@@ -90,6 +90,17 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         }
         context.takeScreenshot("overlay-f10-benchmark-running");
 
+        int benchmarkHistoryBeforeF9 = context.computeOnClient(client -> getHistorySize(tracker));
+        context.getInput().pressKey(GLFW.GLFW_KEY_F9);
+        int benchmarkHistoryAfterF9 = context.computeOnClient(client -> getHistorySize(tracker));
+        if (benchmarkHistoryAfterF9 < benchmarkHistoryBeforeF9) {
+            throw new AssertionError("F9 reset rolling history while a benchmark was active");
+        }
+        if (!tracker.isBenchmarkActive()) {
+            throw new AssertionError("F9 unexpectedly stopped the active benchmark");
+        }
+        context.takeScreenshot("overlay-f9-blocked-during-benchmark");
+
         context.getInput().pressKey(GLFW.GLFW_KEY_F10);
         context.waitFor(client -> !tracker.isBenchmarkActive());
 
@@ -110,6 +121,29 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             throw new AssertionError("F10 benchmark produced an empty final summary");
         }
         context.takeScreenshot("overlay-f10-benchmark-stopped");
+
+        verifyResetIgnoredWhileHidden(context, tracker, config);
+    }
+
+    private static void verifyResetIgnoredWhileHidden(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.waitTicks(5);
+        context.getInput().pressKey(GLFW.GLFW_KEY_F7);
+        context.waitFor(client -> !config.enabled);
+
+        int hiddenHistoryBeforeF9 = context.computeOnClient(client -> getHistorySize(tracker));
+        context.getInput().pressKey(GLFW.GLFW_KEY_F9);
+        int hiddenHistoryAfterF9 = context.computeOnClient(client -> getHistorySize(tracker));
+        if (hiddenHistoryAfterF9 != hiddenHistoryBeforeF9) {
+            throw new AssertionError("F9 changed rolling history while the overlay was hidden");
+        }
+        context.takeScreenshot("overlay-f9-ignored-while-hidden");
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F7);
+        context.waitFor(client -> config.enabled);
     }
 
     private static void verifyResetKey(
