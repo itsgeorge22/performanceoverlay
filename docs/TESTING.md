@@ -46,7 +46,7 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 ### 3. Key bindings
 
 - [x] Press F7 and confirm both configuration state and rendered overlay visibility hide and reappear.
-- [ ] Press F8 and confirm all layouts cycle in order.
+- [x] Press F8 and confirm state, line structure, and rendering cycle through One line, Three lines, Column, then One line.
 - [ ] Press F9 and confirm rolling statistics reset.
 - [ ] Press F10 and confirm a benchmark starts and stops.
 - [ ] Confirm F9 is ignored while the overlay is hidden and blocked during a benchmark.

@@ -59,7 +59,56 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
 
             verifyScaleLimits(context, tracker, config);
             verifyToggleKey(context, tracker, config);
+            verifyCycleLayoutKey(context, tracker, config);
         }
+    }
+
+    private static void verifyCycleLayoutKey(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.position = OverlayConfig.OverlayPosition.TOP_LEFT;
+            config.offsetX = 12;
+            config.offsetY = 60;
+            config.scale = 1.0f;
+            config.textLayout = OverlayConfig.TextLayout.ONE_LINE;
+            config.showFps = true;
+            config.showAvg = true;
+            config.show1Low = true;
+            config.showFrametime = true;
+            config.showGc = true;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitTick();
+        assertLayoutState(context, tracker, config, OverlayConfig.TextLayout.ONE_LINE, 1, "overlay-f8-one-line-before");
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F8);
+        assertLayoutState(context, tracker, config, OverlayConfig.TextLayout.THREE_LINES, 3, "overlay-f8-three-lines");
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F8);
+        assertLayoutState(context, tracker, config, OverlayConfig.TextLayout.COLUMN, 5, "overlay-f8-column");
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F8);
+        assertLayoutState(context, tracker, config, OverlayConfig.TextLayout.ONE_LINE, 1, "overlay-f8-one-line-after");
+    }
+
+    private static void assertLayoutState(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config,
+            OverlayConfig.TextLayout expectedLayout,
+            int expectedLineCount,
+            String screenshotName
+    ) {
+        context.waitFor(client -> config.textLayout == expectedLayout
+                && tracker.getSnapshot().count() == expectedLineCount
+                && containsPositiveFps(tracker.getText()));
+        OverlayBounds bounds = context.computeOnClient(client -> calculateOverlayBounds(client, tracker, config));
+        Path screenshot = context.takeScreenshot(screenshotName);
+        assertOverlayPixelsPresent(screenshot, bounds);
     }
 
     private static void verifyToggleKey(
