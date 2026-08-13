@@ -31,7 +31,7 @@ body:
     id: mod_version
     attributes:
       label: Performance Overlay version
-      placeholder: "1.0.1"
+      placeholder: "1.0.2"
     validations:
       required: true
 

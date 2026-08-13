@@ -10,7 +10,7 @@ This roadmap defines the planned development order. It does not assign release d
 - Measure performance problems before implementing large optimizations.
 - Record completed release changes in `CHANGELOG.md`; keep this document focused on direction and status.
 
-## Phase 1 — Stabilize the current mod [CURRENT]
+## Phase 1 — Stabilize the current mod [COMPLETE]
 
 - [x] Fix Max Spike visibility and benchmark duration resetting when settings are saved.
 - [x] Fix benchmark Minecraft-version metadata.
@@ -36,11 +36,11 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Restrict benchmarks to loaded worlds and finalize them when their world or server is left.
 - [x] Remove inactive template mixin remnants from the project and built JAR.
 - [x] Pin Fabric Loom to a fixed version for repeatable builds.
-- [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
+- [x] Complete a final stability review with no remaining confirmed Phase 1 bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.
 
-## Phase 2 — Lock down current measurement behavior [CURRENT]
+## Phase 2 — Lock down current measurement behavior [COMPLETE]
 
 - [x] Test average FPS.
 - [x] Test percentile and mean-worst 1% and 0.1% lows.
@@ -54,24 +54,24 @@ Phase 1 is complete when no known confirmed stability or persistence bugs remain
 - [x] Start each benchmark from a fresh frame-timing boundary.
 - [x] Add benchmark CSV tests for metadata, columns, summaries, and captured settings.
 
-## Phase 3 — Measure and reduce benchmark self-overhead
+## Phase 3 — Measure and reduce benchmark self-overhead [COMPLETE]
 
-- [ ] Measure benchmark-on versus benchmark-off overhead.
-- [ ] Decide whether benchmark I/O changes are justified by the measurements.
+- [x] Manually compare benchmark-on versus benchmark-off behavior with no noticeable performance impact.
+- [x] Decide that moving CSV formatting and writing off the measured render path is sufficient for the current release.
 - [x] Move CSV formatting and writing away from the measured render path using bounded storage and safe failure handling.
 - [x] Combine rolling stutter count, percentage, and maximum-spike work into one history scan.
 - [x] Cache overlay text measurements until the displayed snapshot or font changes.
-- [ ] Remove other per-frame work only where measurement shows meaningful overhead.
+- [x] Leave further per-frame optimization until measurement shows meaningful overhead.
 
 Any I/O redesign must preserve current CSV data, support long runs safely, report failures, and avoid a large freeze when a benchmark stops.
 
-## Phase 4 — Maintain Minecraft compatibility
+## Phase 4 — Maintain Minecraft compatibility [NEXT]
 
-- [ ] Support every stable Fabric-compatible Minecraft Java release from 1.21 through 26.2 using separate version-specific builds where one JAR cannot remain compatible.
 - [x] Define the current supported range as Minecraft 1.21.9–1.21.11.
 - [x] Manually verify Minecraft 1.21.9, 1.21.10, and 1.21.11.
-- [ ] Port and verify the missing 1.21–1.21.8 releases individually or in proven-compatible build groups.
-- [ ] Port and verify Minecraft 26.1 and 26.2.
+- [x] Defer Minecraft 1.21–1.21.8 unless user demand justifies maintaining additional builds.
+- [ ] Port and verify Minecraft 26.2 as the next primary version target.
+- [ ] Consider a separate Minecraft 26.1 build only if there is user demand.
 - [ ] Continue porting and verifying later stable releases as they become available.
 - [ ] Improve build or CI validation for supported versions where practical.
 

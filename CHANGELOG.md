@@ -1,6 +1,7 @@
 # Changelog
 
-## 1.0.2 [WIP]
+## 1.0.2
+- Reconfirmed compatibility with Minecraft 1.21.9, 1.21.10, and 1.21.11 after the latest fixes.
 - Pinned the Fabric Loom build plugin for repeatable builds.
 - Limited benchmark CSV finalization waits to five seconds instead of allowing an indefinite game freeze.
 - Prevented the Danger FPS color threshold from exceeding Warning FPS.

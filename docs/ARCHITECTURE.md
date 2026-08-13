@@ -250,13 +250,13 @@ Confirmed from the repository snapshot:
 - Minecraft build target: 1.21.11
 - Fabric Loader: 0.18.4
 - Fabric API: 0.141.1+1.21.11
-- mod version: 1.0.1
+- mod version: 1.0.2
 - declared Minecraft compatibility in `fabric.mod.json`: `>=1.21.9 <=1.21.11`
 - environment: `client`
 - Cloth Config is required
 - Mod Menu is recommended
 
-The build targets Minecraft 1.21.11; the same JAR has been manually verified on Minecraft 1.21.9 and 1.21.10. Minecraft 1.21.8 fails during client initialization because its key-binding API is incompatible.
+The build targets Minecraft 1.21.11; the v1.0.2 JAR has been manually verified on Minecraft 1.21.9, 1.21.10, and 1.21.11. Minecraft 1.21.8 fails during client initialization because its key-binding API is incompatible.
 
 ## Current architectural constraints / known risks
 
