@@ -7,6 +7,7 @@ import com.itsgeorge.performanceoverlay.client.PerformanceOverlayModMenu;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.minecraft.SharedConstants;
 import net.minecraft.world.level.Level;
 import org.lwjgl.glfw.GLFW;
 
@@ -242,7 +243,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             java.util.List<String> lines = Files.readAllLines(benchmarkFile, StandardCharsets.UTF_8);
             String csv = String.join("\n", lines);
             if (!lines.get(0).equals("# PerformanceOverlay Benchmark")
-                    || !csv.contains("# Minecraft: 1.21.11")
+                    || !csv.contains("# Minecraft: " + SharedConstants.getCurrentVersion().name())
                     || !csv.contains("# LowMethod: ")
                     || !csv.contains("# EndReason: " + expectedReason)
                     || !csv.contains("# SUMMARY")) {

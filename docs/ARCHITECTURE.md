@@ -29,6 +29,8 @@ Automated tests are under `src/test/java`. They exercise production metric calcu
 
 Minecraft client integration tests are isolated under `src/gametest`. They are loaded only by the Fabric client-game-test run and are not packaged in the release JAR. The current tests launch Minecraft 1.21.11, verify that Performance Overlay and its required dependencies initialize, enter a temporary single-player world, wait for rendered chunks, require positive live metrics, verify all three text layouts, all six screen positions, both scale limits, and the Mod Menu configuration-screen entry, simulate guarded F7-F10 behavior, inspect real benchmark exports, cross a dimension during a benchmark, and verify world-departure finalization.
 
+The separate `compatibility` Gradle project compiles those test classes for Minecraft 1.21.9 and 1.21.10 while loading the normal remapped release JAR as the mod under test. Root verification tasks select matching target dependencies and run each supported version sequentially.
+
 ## Runtime initialization
 
 `PerformanceOverlayClient.onInitializeClient()`:
@@ -258,7 +260,7 @@ Confirmed from the repository snapshot:
 - Cloth Config is required
 - Mod Menu is recommended
 
-The build targets Minecraft 1.21.11; the v1.0.2 JAR has been manually verified on Minecraft 1.21.9, 1.21.10, and 1.21.11. Minecraft 1.21.8 fails during client initialization because its key-binding API is incompatible.
+The build targets Minecraft 1.21.11; the v1.0.2 JAR has been manually and automatically verified on Minecraft 1.21.9, 1.21.10, and 1.21.11. Minecraft 1.21.8 fails during client initialization because its key-binding API is incompatible.
 
 ## Current architectural constraints / known risks
 

@@ -135,3 +135,63 @@ publishing {
 		// retrieving dependencies.
 	}
 }
+
+def compatibilityTargets = [
+        '12109': [
+                minecraft: '1.21.9',
+                fabricApi: '0.134.1+1.21.9',
+                modMenu: '16.0.1',
+                clothConfig: '20.0.149+fabric',
+                placeholderApi: '2.8.0+1.21.9'
+        ],
+        '12110': [
+                minecraft: '1.21.10',
+                fabricApi: '0.138.4+1.21.10',
+                modMenu: '16.0.1',
+                clothConfig: '20.0.149+fabric',
+                placeholderApi: '2.8.0+1.21.9'
+        ]
+]
+
+def compatibilityWrapper = System.getProperty('os.name').toLowerCase().contains('windows')
+		? ['cmd', '/d', '/c', file('gradlew.bat').absolutePath]
+		: [file('gradlew').absolutePath]
+
+compatibilityTargets.each { suffix, target ->
+    tasks.register("test${suffix}", Exec) {
+        group = 'verification'
+        description = "Build the release JAR and run client compatibility tests on Minecraft ${target.minecraft}."
+        dependsOn project.tasks.named('remapJar')
+        workingDir project.projectDir
+        commandLine compatibilityWrapper + [
+				'-p', file('compatibility').absolutePath,
+				'runClientGameTest',
+				"-Ptarget_minecraft=${target.minecraft}",
+				"-Ptarget_fabric_api=${target.fabricApi}",
+				"-Ptarget_modmenu=${target.modMenu}",
+				"-Ptarget_cloth_config=${target.clothConfig}",
+				"-Ptarget_placeholder_api=${target.placeholderApi}",
+				"-Pperformance_overlay_jar=${project.tasks.named('remapJar').get().archiveFile.get().asFile.absolutePath}"
+		]
+    }
+}
+
+tasks.register('test12111') {
+    group = 'verification'
+    description = 'Run the complete Minecraft 1.21.11 unit and client integration suite.'
+    dependsOn tasks.named('test'), tasks.named('runClientGameTest')
+}
+
+tasks.named('test12110') {
+	mustRunAfter project.tasks.named('test12109')
+}
+
+tasks.named('test12111') {
+	mustRunAfter project.tasks.named('test12110')
+}
+
+tasks.register('testSupportedVersions') {
+    group = 'verification'
+    description = 'Run compatibility tests for Minecraft 1.21.9, 1.21.10, and 1.21.11.'
+    dependsOn tasks.named('test12109'), tasks.named('test12110'), tasks.named('test12111')
+}

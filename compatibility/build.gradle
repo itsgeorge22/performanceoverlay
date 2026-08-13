@@ -1,0 +1,62 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
+}
+
+def targetMinecraft = providers.gradleProperty('target_minecraft').get()
+def targetFabricApi = providers.gradleProperty('target_fabric_api').get()
+def targetModMenu = providers.gradleProperty('target_modmenu').get()
+def targetClothConfig = providers.gradleProperty('target_cloth_config').get()
+def targetPlaceholderApi = providers.gradleProperty('target_placeholder_api').get()
+def performanceOverlayJar = providers.gradleProperty('performance_overlay_jar').get()
+
+version = '1.0.0'
+group = 'com.itsgeorge.performanceoverlay.compatibility'
+
+repositories {
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+    }
+    maven {
+        name = 'Architectury'
+        url = 'https://maven.architectury.dev/'
+    }
+}
+
+loom {
+    splitEnvironmentSourceSets()
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'performanceoverlay-compatibility-tests'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+
+sourceSets {
+    gametest {
+        java.srcDirs = [file('../src/gametest/java')]
+        resources.srcDirs = [file('src/gametest/resources')]
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${targetMinecraft}"
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.18.4'
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${targetFabricApi}"
+
+    modClientImplementation files(performanceOverlayJar)
+    modClientImplementation "maven.modrinth:modmenu:${targetModMenu}"
+    modClientImplementation "maven.modrinth:cloth-config:${targetClothConfig}"
+    modClientRuntimeOnly "maven.modrinth:placeholder-api:${targetPlaceholderApi}"
+    modClientRuntimeOnly 'me.shedaniel.cloth:basic-math:0.6.1'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}

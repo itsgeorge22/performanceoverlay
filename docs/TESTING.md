@@ -16,7 +16,7 @@ Run only automated tests:
 
 The automated suite covers benchmark lifecycle and key guarding, same-tick automatic-stop and write-error key suppression, menu start rejection, world-departure finalization, background CSV formatting, sparse GC samples, GC baseline reset behavior, bounded-queue overflow, writer failures and finalization timeouts, CSV metadata and columns, captured settings, filename collision, shutdown-footer handling, complete summary calculations and formatting, all three pause modes, complete configuration-screen copying, configuration presets, configuration fallback and validation, color-threshold ordering, overlay width-cache invalidation, and deterministic metric calculations for average FPS, frametime, percentile and mean-worst lows, duplicate-heavy low selection, combined stutter statistics, threshold inclusion and percentage, maximum spike, reset behavior, and rolling-window boundary inclusion.
 
-## Planned Minecraft client integration tests
+## Minecraft client integration tests
 
 The regular JUnit suite does not launch Minecraft. Fabric client game tests are being added gradually in a separate test source set so test-only code is not packaged in release JARs.
 
@@ -33,6 +33,14 @@ Run this client test locally with:
 ```
 
 The test opens a Minecraft window, completes automatically, closes the game, and reports a failed Gradle task if startup validation fails.
+
+Run the same client behavior suite against every currently supported Minecraft version with:
+
+```powershell
+.\gradlew.bat testSupportedVersions
+```
+
+Individual version commands are `test12109`, `test12110`, and `test12111`. The 1.21.9 and 1.21.10 tasks build the normal release JAR first, then load that JAR with the target Minecraft version and matching dependencies. The combined command runs versions sequentially to keep their client-test files separate.
 
 ### 2. Overlay rendering
 
@@ -90,11 +98,11 @@ These tests validate integration only. Exact metric calculations remain covered 
 
 ### 8. Supported-version matrix
 
-- [ ] Run at least the startup, world-load, overlay-render, and short-benchmark tests on Minecraft 1.21.9.
-- [ ] Run the same compatibility smoke tests on Minecraft 1.21.10.
+- [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.9.
+- [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.10.
 - [x] Run the complete client integration suite on the 1.21.11 build target.
 - [ ] Add a separate client integration target for Minecraft 26.2 when that port exists.
-- [ ] Require each declared supported version to pass before release.
+- [x] Provide one command that requires every declared supported version to pass before release.
 
 ### Reliability rules
 
