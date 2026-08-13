@@ -9,22 +9,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class PerformanceOverlayClientTest {
     @Test
     void benchmarkKeyIsIgnoredOnAutoStopTick() {
-        assertFalse(PerformanceOverlayClient.shouldHandleBenchmarkKey(true, false, true));
+        assertFalse(PerformanceOverlayClient.shouldHandleBenchmarkKey(true, false, false, true));
+    }
+
+    @Test
+    void benchmarkKeyIsIgnoredWhenWriteErrorIsReportedOnSameTick() {
+        assertFalse(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, true, false, true));
     }
 
     @Test
     void benchmarkKeyWorksOnNormalTicks() {
-        assertTrue(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, false, true));
+        assertTrue(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, false, false, true));
     }
 
     @Test
     void benchmarkKeyDoesNothingInMenus() {
-        assertFalse(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, false, false));
+        assertFalse(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, false, false, false));
     }
 
     @Test
     void activeBenchmarkCanStillBeStoppedIfWorldStateDisappears() {
-        assertTrue(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, true, false));
+        assertTrue(PerformanceOverlayClient.shouldHandleBenchmarkKey(false, false, true, false));
     }
 
     @Test

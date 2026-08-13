@@ -127,9 +127,11 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             long now = System.nanoTime();
+            boolean benchmarkErrorReportedThisTick = false;
 
             FpsTracker.BenchmarkStatus pendingStatus = tracker.consumePendingBenchmarkStatus();
             if (pendingStatus != null) {
+                benchmarkErrorReportedThisTick = true;
                 benchmarkAutoStopAtNs = 0;
                 clearBenchmarkProgressState();
                 showBenchmarkError(client, pendingStatus);
@@ -188,6 +190,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             while (benchmarkKey.consumeClick()) {
                 if (!shouldHandleBenchmarkKey(
                         benchmarkAutoStoppedThisTick,
+                        benchmarkErrorReportedThisTick,
                         tracker.isBenchmarkActive(),
                         client.level != null
                 )) {
@@ -409,10 +412,13 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
 
     static boolean shouldHandleBenchmarkKey(
             boolean benchmarkAutoStoppedThisTick,
+            boolean benchmarkErrorReportedThisTick,
             boolean benchmarkActive,
             boolean worldLoaded
     ) {
-        return !benchmarkAutoStoppedThisTick && (benchmarkActive || worldLoaded);
+        return !benchmarkAutoStoppedThisTick
+                && !benchmarkErrorReportedThisTick
+                && (benchmarkActive || worldLoaded);
     }
 
     static int benchmarkProgressPercent(long elapsedSec, long durationSec) {

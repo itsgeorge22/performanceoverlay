@@ -97,7 +97,7 @@ F10 starts or stops benchmarks regardless of whether the overlay is visible, but
 
 Leaving a single-player world or multiplayer server finalizes an active benchmark with `WORLD_LEFT`. Joining another world does not restart it. Dimension changes keep the same play connection, so benchmarks continue across Overworld, Nether, and End transitions.
 
-Automatic stops force a final 100% progress update. If an automatic stop and an F10 press occur during the same client tick, the F10 press is consumed without starting another benchmark.
+Automatic stops force a final 100% progress update. If an automatic stop or benchmark write-error report and an F10 press occur during the same client tick, the F10 press is consumed without starting another benchmark.
 
 F9 does nothing while the overlay is disabled. While the overlay is visible, F9 is blocked with a warning during an active benchmark because resetting only the rolling statistics would make the CSV's rolling columns inconsistent with its uninterrupted full-run data. It works normally after the benchmark ends.
 
@@ -152,7 +152,7 @@ Each measured benchmark frame creates one numeric row snapshot and submits it to
 
 The background writer is flushed every 120 logged frames. Normal stop waits for the bounded queue to drain, writes the summary footer, flushes, and closes the file before reporting that it was saved. If the queue fills, the benchmark aborts instead of blocking frame rendering.
 
-If row submission fails or the background writer reports an I/O failure, the tracker stops the run and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
+If row submission fails or the background writer reports an I/O failure, the tracker stops the run and queues one error status. The client consumes that status on the next client tick, clears benchmark progress and auto-stop state, consumes any F10 press from that tick, and shows the player an error with the incomplete file path when available. Start, manual-stop, and auto-stop finalization failures use the same visible error presentation.
 
 The Fabric play-connection disconnect event finalizes an active benchmark when its world or server is left. The client-stopping event finalizes any run still active during normal game shutdown. Every successfully finalized CSV records an `EndReason` value for manual stop, automatic duration, world departure, or game shutdown. Forced process termination, power loss, and crashes that bypass lifecycle events can still leave a partial file.
 
