@@ -17,8 +17,8 @@ import java.nio.file.Path;
 public final class PerformanceOverlayWorldClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
+        OverlayConfig config = context.computeOnClient(client -> PerformanceOverlayClient.getConfig());
         FpsTracker tracker = context.computeOnClient(client -> {
-            OverlayConfig config = PerformanceOverlayClient.getConfig();
             config.enabled = true;
             config.position = OverlayConfig.OverlayPosition.TOP_LEFT;
             config.offsetX = 8;
@@ -27,13 +27,13 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             config.textLayout = OverlayConfig.TextLayout.ONE_LINE;
             config.colorThresholds = false;
             config.showFps = true;
-            config.showAvg = false;
-            config.show1Low = false;
+            config.showAvg = true;
+            config.show1Low = true;
             config.show01Low = false;
-            config.showFrametime = false;
+            config.showFrametime = true;
             config.showStutters = false;
             config.showMaxSpike = false;
-            config.showGc = false;
+            config.showGc = true;
             config.showMemory = false;
             PerformanceOverlayClient.setConfig(config);
             return getActiveTracker();
@@ -46,9 +46,30 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
                     && client.player != null
                     && containsPositiveFps(tracker.getText()));
 
-            Path screenshot = context.takeScreenshot("performance-overlay-world");
-            assertOverlayPixelsPresent(screenshot);
+            verifyLayout(context, tracker, config, OverlayConfig.TextLayout.ONE_LINE, 1, "overlay-one-line");
+            verifyLayout(context, tracker, config, OverlayConfig.TextLayout.THREE_LINES, 3, "overlay-three-lines");
+            verifyLayout(context, tracker, config, OverlayConfig.TextLayout.COLUMN, 5, "overlay-column");
         }
+    }
+
+    private static void verifyLayout(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config,
+            OverlayConfig.TextLayout layout,
+            int expectedLineCount,
+            String screenshotName
+    ) {
+        context.runOnClient(client -> {
+            config.textLayout = layout;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitTick();
+        context.waitFor(client -> tracker.getSnapshot().count() == expectedLineCount
+                && containsPositiveFps(tracker.getText()));
+
+        Path screenshot = context.takeScreenshot(screenshotName);
+        assertOverlayPixelsPresent(screenshot);
     }
 
     private static void assertOverlayPixelsPresent(Path screenshot) {
