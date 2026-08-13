@@ -25,8 +25,6 @@ Important classes:
 - `PerformanceOverlayConfigScreen` — Cloth Config UI.
 - `PerformanceOverlayModMenu` — Mod Menu integration.
 
-The repository also contains example mixin source/config remnants. `fabric.mod.json` currently declares no `mixins` property, so those mixins are not registered by the mod metadata.
-
 Automated tests are under `src/test/java`. They exercise production metric calculations, pause handling, benchmark lifecycle behavior, and CSV structure with deterministic frame timestamps and durations through JUnit Jupiter.
 
 ## Runtime initialization

@@ -34,6 +34,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Prevent cached GC deltas from being duplicated across benchmark CSV rows.
 - [x] Prevent duplicate-heavy frametime data from degrading low-percentile selection.
 - [x] Restrict benchmarks to loaded worlds and finalize them when their world or server is left.
+- [x] Remove inactive template mixin remnants from the project and built JAR.
 - [ ] Fix any confirmed benchmark lifecycle, CSV/write, shutdown, UI-formatting, or persistence bugs.
 
 Phase 1 is complete when no known confirmed stability or persistence bugs remain and loaded configuration values are validated safely.
