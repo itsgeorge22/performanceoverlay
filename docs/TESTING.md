@@ -65,10 +65,10 @@ Prefer direct state and persistence assertions for the full settings matrix. Use
 
 ### 5. Metric smoke checks
 
-- [ ] Confirm FPS and frametime become non-zero after rendered frames.
-- [ ] Confirm enabled metrics appear and disabled metrics disappear.
-- [ ] Exercise every metric-visibility combination without rendering crashes.
-- [ ] Confirm reset and overlay re-enable establish fresh frame and GC baselines.
+- [x] Confirm FPS and frametime become non-zero after rendered frames.
+- [x] Confirm enabled metrics appear and disabled metrics disappear.
+- [x] Exercise all 512 metric-visibility combinations through snapshot construction, with real-client rendering checks for representative layouts.
+- [x] Confirm reset and overlay re-enable establish fresh frame and GC baselines.
 
 These tests validate integration only. Exact metric calculations remain covered by deterministic unit tests.
 

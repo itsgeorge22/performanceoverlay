@@ -52,6 +52,8 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
                     && client.player != null
                     && containsPositiveFps(tracker.getText()));
 
+            verifyLiveMetrics(context, tracker, config);
+
             verifyLayout(context, tracker, config, OverlayConfig.TextLayout.ONE_LINE, 1, "overlay-one-line");
             verifyLayout(context, tracker, config, OverlayConfig.TextLayout.THREE_LINES, 3, "overlay-three-lines");
             verifyLayout(context, tracker, config, OverlayConfig.TextLayout.COLUMN, 5, "overlay-column");
@@ -69,6 +71,25 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifySameTickBenchmarkGuards(context, tracker, config);
             verifySettingsScreenOpens(context);
         }
+    }
+
+    private static void verifyLiveMetrics(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.textLayout = OverlayConfig.TextLayout.ONE_LINE;
+            config.showFps = true;
+            config.showFrametime = true;
+            config.fpsUpdateMs = 50;
+            config.frametimeUpdateMs = 50;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitFor(client -> containsPositiveMetric(tracker.getText(), "FPS: ")
+                && containsPositiveMetric(tracker.getText(), "FT: "));
+        context.takeScreenshot("overlay-live-fps-frametime");
     }
 
     private static void verifySettingsScreenOpens(ClientGameTestContext context) {
@@ -605,21 +626,26 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
     }
 
     private static boolean containsPositiveFps(String text) {
-        int valueStart = text.indexOf("FPS: ");
+        return containsPositiveMetric(text, "FPS: ");
+    }
+
+    private static boolean containsPositiveMetric(String text, String label) {
+        int valueStart = text.indexOf(label);
         if (valueStart < 0) {
             return false;
         }
 
-        valueStart += "FPS: ".length();
+        valueStart += label.length();
         int valueEnd = valueStart;
-        while (valueEnd < text.length() && Character.isDigit(text.charAt(valueEnd))) {
+        while (valueEnd < text.length()
+                && (Character.isDigit(text.charAt(valueEnd)) || text.charAt(valueEnd) == '.')) {
             valueEnd++;
         }
 
         if (valueEnd == valueStart) {
             return false;
         }
-        return Integer.parseInt(text.substring(valueStart, valueEnd)) > 0;
+        return Double.parseDouble(text.substring(valueStart, valueEnd)) > 0;
     }
 
     private record OverlayBounds(int x, int y, int width, int height, int screenWidth, int screenHeight) {

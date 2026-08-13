@@ -96,6 +96,29 @@ final class FpsTrackerMetricTest {
     }
 
     @Test
+    void overlayReenableStartsFreshFrameAndGcBaselines() {
+        AtomicLong totalGcTimeMs = new AtomicLong(100);
+        OverlayConfig config = new OverlayConfig();
+        FpsTracker reenabledTracker = new FpsTracker(config, totalGcTimeMs::get);
+        reenabledTracker.onFrame(false, ns(100));
+        reenabledTracker.onFrame(false, ns(110));
+
+        config.enabled = false;
+        reenabledTracker.setConfig(config, false);
+        reenabledTracker.onFrame(false, ns(1000));
+        totalGcTimeMs.set(180);
+
+        config.enabled = true;
+        reenabledTracker.setConfig(config, false);
+        reenabledTracker.onFrame(false, ns(2000));
+        reenabledTracker.onFrame(false, ns(2010));
+        totalGcTimeMs.set(187);
+
+        assertEquals(0.0, reenabledTracker.windowFps(ns(2010), NS_PER_SEC));
+        assertEquals(7, reenabledTracker.readGcTimeDeltaMs());
+    }
+
+    @Test
     void percentileLowsSelectConfiguredTailBoundaries() {
         pushLowDistribution();
 
