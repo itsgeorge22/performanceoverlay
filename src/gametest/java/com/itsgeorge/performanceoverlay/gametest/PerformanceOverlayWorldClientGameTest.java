@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
+import java.util.Locale;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class PerformanceOverlayWorldClientGameTest implements FabricClientGameTest {
@@ -49,7 +50,68 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             verifyLayout(context, tracker, config, OverlayConfig.TextLayout.ONE_LINE, 1, "overlay-one-line");
             verifyLayout(context, tracker, config, OverlayConfig.TextLayout.THREE_LINES, 3, "overlay-three-lines");
             verifyLayout(context, tracker, config, OverlayConfig.TextLayout.COLUMN, 5, "overlay-column");
+
+            preparePositionChecks(context, config);
+            for (OverlayConfig.OverlayPosition position : OverlayConfig.OverlayPosition.values()) {
+                verifyPosition(context, tracker, config, position);
+            }
         }
+    }
+
+    private static void preparePositionChecks(ClientGameTestContext context, OverlayConfig config) {
+        context.runOnClient(client -> {
+            config.textLayout = OverlayConfig.TextLayout.ONE_LINE;
+            config.offsetX = 12;
+            config.offsetY = 60;
+            config.showFps = true;
+            config.showAvg = false;
+            config.show1Low = false;
+            config.show01Low = false;
+            config.showFrametime = false;
+            config.showStutters = false;
+            config.showMaxSpike = false;
+            config.showGc = false;
+            config.showMemory = false;
+            PerformanceOverlayClient.setConfig(config);
+        });
+    }
+
+    private static void verifyPosition(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config,
+            OverlayConfig.OverlayPosition position
+    ) {
+        context.runOnClient(client -> {
+            config.position = position;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitTick();
+        context.waitFor(client -> tracker.getSnapshot().count() == 1
+                && containsPositiveFps(tracker.getText()));
+
+        OverlayBounds bounds = context.computeOnClient(client -> {
+            String line = tracker.getSnapshot().lines()[0];
+            int width = client.font.width(line);
+            int height = client.font.lineHeight;
+            int screenWidth = client.getWindow().getGuiScaledWidth();
+            int screenHeight = client.getWindow().getGuiScaledHeight();
+
+            int x = switch (position) {
+                case TOP_LEFT, BOTTOM_LEFT -> config.offsetX;
+                case TOP_RIGHT, BOTTOM_RIGHT -> Math.max(0, screenWidth - config.offsetX - width);
+                case TOP_CENTER, BOTTOM_CENTER -> Math.max(0, (screenWidth - width) / 2 + config.offsetX);
+            };
+            int y = switch (position) {
+                case TOP_LEFT, TOP_CENTER, TOP_RIGHT -> config.offsetY;
+                case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> Math.max(0, screenHeight - config.offsetY - height);
+            };
+            return new OverlayBounds(x, y, width, height, screenWidth, screenHeight);
+        });
+
+        String screenshotName = "overlay-position-" + position.name().toLowerCase(Locale.ROOT).replace('_', '-');
+        Path screenshot = context.takeScreenshot(screenshotName);
+        assertOverlayPixelsPresent(screenshot, bounds);
     }
 
     private static void verifyLayout(
@@ -104,6 +166,42 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         }
     }
 
+    private static void assertOverlayPixelsPresent(Path screenshot, OverlayBounds bounds) {
+        try {
+            BufferedImage image = ImageIO.read(screenshot.toFile());
+            if (image == null) {
+                throw new AssertionError("Could not read the overlay position screenshot");
+            }
+
+            double scaleX = image.getWidth() / (double) bounds.screenWidth();
+            double scaleY = image.getHeight() / (double) bounds.screenHeight();
+            int padding = 12;
+            int minX = Math.max(0, (int) Math.floor((bounds.x() - padding) * scaleX));
+            int minY = Math.max(0, (int) Math.floor((bounds.y() - padding) * scaleY));
+            int maxX = Math.min(image.getWidth(), (int) Math.ceil((bounds.x() + bounds.width() + padding) * scaleX));
+            int maxY = Math.min(image.getHeight(), (int) Math.ceil((bounds.y() + bounds.height() + padding) * scaleY));
+
+            int brightPixels = 0;
+            for (int y = minY; y < maxY; y++) {
+                for (int x = minX; x < maxX; x++) {
+                    int rgb = image.getRGB(x, y);
+                    int red = (rgb >> 16) & 0xFF;
+                    int green = (rgb >> 8) & 0xFF;
+                    int blue = rgb & 0xFF;
+                    if (red >= 235 && green >= 235 && blue >= 235) {
+                        brightPixels++;
+                    }
+                }
+            }
+
+            if (brightPixels < 20) {
+                throw new AssertionError("Overlay text was not visible at the expected position: " + screenshot);
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Could not inspect the overlay position screenshot", e);
+        }
+    }
+
     private static FpsTracker getActiveTracker() {
         try {
             Field trackerField = PerformanceOverlayClient.class.getDeclaredField("tracker");
@@ -135,5 +233,8 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             return false;
         }
         return Integer.parseInt(text.substring(valueStart, valueEnd)) > 0;
+    }
+
+    private record OverlayBounds(int x, int y, int width, int height, int screenWidth, int screenHeight) {
     }
 }
