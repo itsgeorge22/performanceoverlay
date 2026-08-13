@@ -14,7 +14,7 @@ Run only automated tests:
 .\gradlew.bat test
 ```
 
-The automated suite covers benchmark lifecycle and key guarding, same-tick automatic-stop and write-error key suppression, menu start rejection, world-departure finalization, background CSV formatting, sparse GC samples, GC baseline reset behavior, bounded-queue overflow, writer failures and finalization timeouts, CSV metadata and columns, captured settings, filename collision, shutdown-footer handling, complete summary calculations and formatting, all three pause modes, configuration presets, configuration fallback and validation, color-threshold ordering, overlay width-cache invalidation, and deterministic metric calculations for average FPS, frametime, percentile and mean-worst lows, duplicate-heavy low selection, combined stutter statistics, threshold inclusion and percentage, maximum spike, reset behavior, and rolling-window boundary inclusion.
+The automated suite covers benchmark lifecycle and key guarding, same-tick automatic-stop and write-error key suppression, menu start rejection, world-departure finalization, background CSV formatting, sparse GC samples, GC baseline reset behavior, bounded-queue overflow, writer failures and finalization timeouts, CSV metadata and columns, captured settings, filename collision, shutdown-footer handling, complete summary calculations and formatting, all three pause modes, complete configuration-screen copying, configuration presets, configuration fallback and validation, color-threshold ordering, overlay width-cache invalidation, and deterministic metric calculations for average FPS, frametime, percentile and mean-worst lows, duplicate-heavy low selection, combined stutter statistics, threshold inclusion and percentage, maximum spike, reset behavior, and rolling-window boundary inclusion.
 
 ## Planned Minecraft client integration tests
 
@@ -55,7 +55,7 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 ### 4. Settings
 
 - [x] Open the Performance Overlay configuration screen through its Mod Menu integration and confirm its title loads successfully.
-- [ ] Verify every switch, number field, and enum value is copied into the working configuration.
+- [x] Verify every switch, number field, and enum value is copied into the working configuration.
 - [ ] Save every supported setting and confirm it persists after reopening the screen.
 - [ ] Confirm Default, Responsive, and Smooth presets apply their complete values and remain selected.
 - [ ] Confirm editing a preset-controlled value changes the preset to Custom.

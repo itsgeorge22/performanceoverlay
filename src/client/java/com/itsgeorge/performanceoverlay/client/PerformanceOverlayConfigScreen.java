@@ -468,7 +468,7 @@ public final class PerformanceOverlayConfigScreen {
         return v;
     }
 
-    private static OverlayConfig copy(OverlayConfig src) {
+    static OverlayConfig copy(OverlayConfig src) {
         OverlayConfig c = new OverlayConfig();
 
         c.enabled = src.enabled;
