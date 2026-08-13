@@ -41,7 +41,7 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 - [x] Confirm the overlay produces visible metric text with a positive FPS value and capture a diagnostic screenshot.
 - [x] Render and verify the expected line structure of all three text layouts without crashing.
 - [x] Render all six supported screen positions and verify text appears at each expected anchor.
-- [ ] Render at the minimum and maximum supported scale.
+- [x] Render at the minimum and maximum supported scale and verify the maximum is materially larger.
 
 ### 3. Key bindings
 

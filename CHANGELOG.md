@@ -1,7 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
-- Added automated Minecraft 1.21.11 startup, world-load, layout, and screen-position rendering tests.
+- Added automated Minecraft 1.21.11 startup, world-load, layout, screen-position, and scale-limit rendering tests.
 
 ## 1.0.2
 - Reconfirmed compatibility with Minecraft 1.21.9, 1.21.10, and 1.21.11 after the latest fixes.

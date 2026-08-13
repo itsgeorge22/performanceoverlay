@@ -55,7 +55,54 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             for (OverlayConfig.OverlayPosition position : OverlayConfig.OverlayPosition.values()) {
                 verifyPosition(context, tracker, config, position);
             }
+
+            verifyScaleLimits(context, tracker, config);
         }
+    }
+
+    private static void verifyScaleLimits(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.position = OverlayConfig.OverlayPosition.TOP_LEFT;
+            config.offsetX = 12;
+            config.offsetY = 60;
+            config.fpsUpdateMs = 5000;
+            PerformanceOverlayClient.setConfig(config);
+        });
+
+        int minimumScalePixels = captureScale(context, tracker, config, 0.5f, "overlay-scale-minimum");
+        int maximumScalePixels = captureScale(context, tracker, config, 2.0f, "overlay-scale-maximum");
+
+        if (maximumScalePixels < minimumScalePixels * 4) {
+            throw new AssertionError("Maximum overlay scale did not render materially larger than minimum scale");
+        }
+    }
+
+    private static int captureScale(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config,
+            float scale,
+            String screenshotName
+    ) {
+        context.runOnClient(client -> {
+            config.scale = scale;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitTick();
+        context.waitFor(client -> tracker.getSnapshot().count() == 1
+                && containsPositiveFps(tracker.getText()));
+
+        OverlayBounds bounds = context.computeOnClient(client -> calculateOverlayBounds(client, tracker, config));
+        Path screenshot = context.takeScreenshot(screenshotName);
+        int brightPixels = countBrightPixels(screenshot, bounds);
+        if (brightPixels < 5) {
+            throw new AssertionError("Overlay text was not visible at scale " + scale);
+        }
+        return brightPixels;
     }
 
     private static void preparePositionChecks(ClientGameTestContext context, OverlayConfig config) {
@@ -90,28 +137,34 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         context.waitFor(client -> tracker.getSnapshot().count() == 1
                 && containsPositiveFps(tracker.getText()));
 
-        OverlayBounds bounds = context.computeOnClient(client -> {
-            String line = tracker.getSnapshot().lines()[0];
-            int width = client.font.width(line);
-            int height = client.font.lineHeight;
-            int screenWidth = client.getWindow().getGuiScaledWidth();
-            int screenHeight = client.getWindow().getGuiScaledHeight();
-
-            int x = switch (position) {
-                case TOP_LEFT, BOTTOM_LEFT -> config.offsetX;
-                case TOP_RIGHT, BOTTOM_RIGHT -> Math.max(0, screenWidth - config.offsetX - width);
-                case TOP_CENTER, BOTTOM_CENTER -> Math.max(0, (screenWidth - width) / 2 + config.offsetX);
-            };
-            int y = switch (position) {
-                case TOP_LEFT, TOP_CENTER, TOP_RIGHT -> config.offsetY;
-                case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> Math.max(0, screenHeight - config.offsetY - height);
-            };
-            return new OverlayBounds(x, y, width, height, screenWidth, screenHeight);
-        });
+        OverlayBounds bounds = context.computeOnClient(client -> calculateOverlayBounds(client, tracker, config));
 
         String screenshotName = "overlay-position-" + position.name().toLowerCase(Locale.ROOT).replace('_', '-');
         Path screenshot = context.takeScreenshot(screenshotName);
         assertOverlayPixelsPresent(screenshot, bounds);
+    }
+
+    private static OverlayBounds calculateOverlayBounds(
+            net.minecraft.client.Minecraft client,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        String line = tracker.getSnapshot().lines()[0];
+        int width = Math.round(client.font.width(line) * config.scale);
+        int height = Math.round(client.font.lineHeight * config.scale);
+        int screenWidth = client.getWindow().getGuiScaledWidth();
+        int screenHeight = client.getWindow().getGuiScaledHeight();
+
+        int x = switch (config.position) {
+            case TOP_LEFT, BOTTOM_LEFT -> config.offsetX;
+            case TOP_RIGHT, BOTTOM_RIGHT -> Math.max(0, screenWidth - config.offsetX - width);
+            case TOP_CENTER, BOTTOM_CENTER -> Math.max(0, (screenWidth - width) / 2 + config.offsetX);
+        };
+        int y = switch (config.position) {
+            case TOP_LEFT, TOP_CENTER, TOP_RIGHT -> config.offsetY;
+            case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> Math.max(0, screenHeight - config.offsetY - height);
+        };
+        return new OverlayBounds(x, y, width, height, screenWidth, screenHeight);
     }
 
     private static void verifyLayout(
@@ -167,6 +220,13 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
     }
 
     private static void assertOverlayPixelsPresent(Path screenshot, OverlayBounds bounds) {
+        int brightPixels = countBrightPixels(screenshot, bounds);
+        if (brightPixels < 20) {
+            throw new AssertionError("Overlay text was not visible at the expected position: " + screenshot);
+        }
+    }
+
+    private static int countBrightPixels(Path screenshot, OverlayBounds bounds) {
         try {
             BufferedImage image = ImageIO.read(screenshot.toFile());
             if (image == null) {
@@ -194,11 +254,9 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
                 }
             }
 
-            if (brightPixels < 20) {
-                throw new AssertionError("Overlay text was not visible at the expected position: " + screenshot);
-            }
+            return brightPixels;
         } catch (IOException e) {
-            throw new AssertionError("Could not inspect the overlay position screenshot", e);
+            throw new AssertionError("Could not inspect the overlay screenshot", e);
         }
     }
 
