@@ -76,6 +76,8 @@ END_CLIENT_TICK
 
 Configuration changes made through these key actions are persisted with `ConfigIO.save()` where applicable.
 
+Resetting rolling statistics also establishes a fresh cumulative GC baseline, so the next GC delta excludes collection time from before the reset or while normal overlay sampling was disabled.
+
 ## Key bindings
 
 Default keys:

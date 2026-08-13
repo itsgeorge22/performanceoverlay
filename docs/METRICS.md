@@ -176,7 +176,7 @@ gcDeltaMs = max(0, currentTotalGcMs - previousTotalGcMs)
 
 The overlay uses the compact label `GC`, while the settings call it `GC time delta` and benchmark CSV files name it `gc_time_delta_ms`. It is aggregate JVM GC collection time accumulated since the previous poll, not the duration of an individual GC pause.
 
-The cumulative GC baseline is initialized when the tracker is created and reset when each benchmark starts. Benchmark GC values therefore exclude collection time accumulated before that run.
+The cumulative GC baseline is initialized when the tracker is created and refreshed whenever rolling statistics are reset, including benchmark starts and overlay re-enabling. GC values therefore exclude collection time accumulated before the latest reset or while normal overlay sampling was disabled.
 
 When no GC time accumulated during the interval, the value is `0ms`.
 
@@ -303,7 +303,7 @@ Maximum spike is the maximum retained benchmark frame duration.
 
 ## Reset semantics
 
-`FpsTracker.reset()` clears rolling history, metric update timestamps, cached values, and visible snapshot state.
+`FpsTracker.reset()` clears rolling history, metric update timestamps, cached values, visible snapshot state, and refreshes the cumulative GC baseline.
 
 It does not clear an active benchmark's dedicated full-run frame collection.
 

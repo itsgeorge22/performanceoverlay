@@ -16,6 +16,7 @@ This roadmap defines the planned development order. It does not assign release d
 - [x] Fix benchmark Minecraft-version metadata.
 - [x] Exclude pre-benchmark GC activity from each run.
 - [x] Clarify GC time-delta reporting.
+- [x] Refresh the GC measurement baseline whenever rolling statistics are reset.
 - [x] Fix the missing Max Spike separator in the three-line layout.
 - [x] Add validation for loaded configuration values.
 - [x] Standardize configuration option labels so capitalization, spacing, and enum-value names follow one consistent user-facing style.

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -77,6 +78,21 @@ final class FpsTrackerMetricTest {
         FpsTracker.Smoothed smoothed = tracker.computeSmoothed(ns(30), ns(10), NS_PER_SEC);
 
         assertEquals(10.0, smoothed.ftMs(), 0.000_001);
+    }
+
+    @Test
+    void resetStartsGcDeltaFromAFreshBaseline() {
+        AtomicLong totalGcTimeMs = new AtomicLong(100);
+        FpsTracker gcTracker = new FpsTracker(new OverlayConfig(), totalGcTimeMs::get);
+
+        totalGcTimeMs.set(130);
+        assertEquals(30, gcTracker.readGcTimeDeltaMs());
+
+        totalGcTimeMs.set(200);
+        gcTracker.reset();
+        totalGcTimeMs.set(207);
+
+        assertEquals(7, gcTracker.readGcTimeDeltaMs());
     }
 
     @Test

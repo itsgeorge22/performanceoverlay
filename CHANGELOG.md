@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Reset the GC measurement baseline whenever overlay statistics are reset.
 - Limited benchmark starts to loaded worlds and finalized active runs when leaving a world or server.
 - Cached overlay text measurements until the displayed snapshot or font changes.
 - Reduced stutter metric update work by calculating frame count, stutters, and maximum spike in one history scan.

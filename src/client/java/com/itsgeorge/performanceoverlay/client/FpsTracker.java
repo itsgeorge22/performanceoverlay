@@ -62,6 +62,7 @@ public final class FpsTracker {
     private boolean wasPaused = false;
 
     // GC / Memory
+    private final LongSupplier totalGcTimeMs;
     private long cachedGcTimeDeltaMs = 0;
     private long lastGcUpdateNs = 0;
 
@@ -91,8 +92,12 @@ public final class FpsTracker {
     private BenchmarkSummary lastBenchmarkSummary = new BenchmarkSummary(0, 0, 0, 0, 0, 0);
 
     public FpsTracker(OverlayConfig config) {
+        this(config, FpsTracker::readTotalGcTimeMs);
+    }
+
+    FpsTracker(OverlayConfig config, LongSupplier totalGcTimeMs) {
+        this.totalGcTimeMs = totalGcTimeMs;
         setConfig(config, true);
-        resetGcBaseline();
     }
 
     public void setConfig(OverlayConfig cfg, boolean forceReset) {
@@ -136,6 +141,7 @@ public final class FpsTracker {
 
         cachedGcTimeDeltaMs = 0;
         lastGcUpdateNs = 0;
+        resetGcBaseline();
 
         cachedMemUsedMb = 0;
         cachedMemMaxMb = 0;
@@ -282,7 +288,6 @@ public final class FpsTracker {
             benchmarkSettings = settings;
             ensureCapacity(settings);
             reset();
-            resetGcBaseline();
 
             benchmarkActive = true;
             benchmarkStartNs = nanoTime.getAsLong();
@@ -1409,11 +1414,11 @@ public final class FpsTracker {
     private long lastTotalGcTimeMs = 0;
 
     private void resetGcBaseline() {
-        lastTotalGcTimeMs = readTotalGcTimeMs();
+        lastTotalGcTimeMs = totalGcTimeMs.getAsLong();
     }
 
-    private long readGcTimeDeltaMs() {
-        long total = readTotalGcTimeMs();
+    long readGcTimeDeltaMs() {
+        long total = totalGcTimeMs.getAsLong();
         long delta = total - lastTotalGcTimeMs;
         lastTotalGcTimeMs = total;
 
