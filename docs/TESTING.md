@@ -56,10 +56,10 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 
 - [x] Open the Performance Overlay configuration screen through its Mod Menu integration and confirm its title loads successfully.
 - [x] Verify every switch, number field, and enum value is copied into the working configuration.
-- [ ] Save every supported setting and confirm it persists after reopening the screen.
-- [ ] Confirm Default, Responsive, and Smooth presets apply their complete values and remain selected.
-- [ ] Confirm editing a preset-controlled value changes the preset to Custom.
-- [ ] Confirm invalid loaded values are corrected safely.
+- [x] Save every supported setting and confirm it persists after reopening the screen.
+- [x] Confirm Default, Responsive, and Smooth presets apply their complete values and remain selected.
+- [x] Confirm editing a preset-controlled value changes the preset to Custom.
+- [x] Confirm invalid loaded values are corrected safely.
 
 Prefer direct state and persistence assertions for the full settings matrix. Use simulated UI clicks only for representative controls so layout changes in Cloth Config do not make the entire suite fragile.
 

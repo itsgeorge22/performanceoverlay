@@ -17,11 +17,14 @@ public final class ConfigIO {
     }
 
     public static OverlayConfig load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        return load(FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME));
+    }
+
+    static OverlayConfig load(Path path) {
 
         if (!Files.exists(path)) {
             OverlayConfig cfg = new OverlayConfig();
-            save(cfg);
+            save(path, cfg);
             return cfg;
         }
 
@@ -43,8 +46,11 @@ public final class ConfigIO {
     }
 
     public static void save(OverlayConfig cfg) {
+        save(FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME), cfg);
+    }
+
+    static void save(Path path, OverlayConfig cfg) {
         cfg.validate();
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
 
         try {
             Files.createDirectories(path.getParent());
