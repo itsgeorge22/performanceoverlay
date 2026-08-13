@@ -36,9 +36,9 @@ The test opens a Minecraft window, completes automatically, closes the game, and
 
 ### 2. Overlay rendering
 
-- [ ] Create and enter a test world.
-- [ ] Wait for chunks and the HUD to render.
-- [ ] Confirm the overlay appears and contains metric text.
+- [x] Create and enter a test world.
+- [x] Wait for chunks and the HUD to render.
+- [x] Confirm the overlay produces visible metric text with a positive FPS value and capture a diagnostic screenshot.
 - [ ] Render all three text layouts without crashing.
 - [ ] Render every supported screen position without crashing.
 - [ ] Render at the minimum and maximum supported scale.

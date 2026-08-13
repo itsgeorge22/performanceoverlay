@@ -6,7 +6,8 @@
     "environment": "client",
     "entrypoints": {
         "fabric-client-gametest": [
-            "com.itsgeorge.performanceoverlay.gametest.PerformanceOverlayStartupClientGameTest"
+            "com.itsgeorge.performanceoverlay.gametest.PerformanceOverlayStartupClientGameTest",
+            "com.itsgeorge.performanceoverlay.gametest.PerformanceOverlayWorldClientGameTest"
         ]
     },
     "depends": {
