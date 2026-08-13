@@ -6,6 +6,7 @@ import com.itsgeorge.performanceoverlay.client.OverlayConfig;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import org.lwjgl.glfw.GLFW;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -57,7 +58,39 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             }
 
             verifyScaleLimits(context, tracker, config);
+            verifyToggleKey(context, tracker, config);
         }
+    }
+
+    private static void verifyToggleKey(
+            ClientGameTestContext context,
+            FpsTracker tracker,
+            OverlayConfig config
+    ) {
+        context.runOnClient(client -> {
+            config.enabled = true;
+            config.position = OverlayConfig.OverlayPosition.TOP_LEFT;
+            config.offsetX = 12;
+            config.offsetY = 60;
+            config.scale = 1.0f;
+            PerformanceOverlayClient.setConfig(config);
+        });
+        context.waitTick();
+        context.waitFor(client -> config.enabled && containsPositiveFps(tracker.getText()));
+
+        OverlayBounds bounds = context.computeOnClient(client -> calculateOverlayBounds(client, tracker, config));
+        Path visibleBefore = context.takeScreenshot("overlay-f7-visible-before");
+        assertOverlayPixelsPresent(visibleBefore, bounds);
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F7);
+        context.waitFor(client -> !config.enabled);
+        Path hidden = context.takeScreenshot("overlay-f7-hidden");
+        assertOverlayPixelsAbsent(hidden, bounds);
+
+        context.getInput().pressKey(GLFW.GLFW_KEY_F7);
+        context.waitFor(client -> config.enabled && containsPositiveFps(tracker.getText()));
+        Path visibleAfter = context.takeScreenshot("overlay-f7-visible-after");
+        assertOverlayPixelsPresent(visibleAfter, bounds);
     }
 
     private static void verifyScaleLimits(
@@ -223,6 +256,13 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         int brightPixels = countBrightPixels(screenshot, bounds);
         if (brightPixels < 20) {
             throw new AssertionError("Overlay text was not visible at the expected position: " + screenshot);
+        }
+    }
+
+    private static void assertOverlayPixelsAbsent(Path screenshot, OverlayBounds bounds) {
+        int brightPixels = countBrightPixels(screenshot, bounds);
+        if (brightPixels >= 5) {
+            throw new AssertionError("Overlay text remained visible after F7 disabled it: " + screenshot);
         }
     }
 
