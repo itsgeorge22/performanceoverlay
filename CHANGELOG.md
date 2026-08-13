@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.0.2 [WIP]
+- Pinned the Fabric Loom build plugin for repeatable builds.
 - Limited benchmark CSV finalization waits to five seconds instead of allowing an indefinite game freeze.
 - Prevented the Danger FPS color threshold from exceeding Warning FPS.
 - Prevented F10 from starting another benchmark while a write error is being reported.
