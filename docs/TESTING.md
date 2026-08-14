@@ -26,7 +26,18 @@ Coding agents run the relevant tests after making changes, so these commands are
 
 Use the root `testSupportedVersions` task for the most complete automated check before a release. Minecraft opens and closes once for each of the seven supported versions across all three JARs. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
 
-GitHub currently runs `build` on every push and pull request. Real Minecraft client tests run locally because they launch the graphical game client.
+GitHub runs `build` on every push and pull request. The complete real-client compatibility matrix can also be started manually from GitHub without using the local computer.
+
+### Run the client tests on GitHub
+
+1. Open the repository's **Actions** tab.
+2. Select **Minecraft client tests**.
+3. Select **Run workflow**, keep the `main` branch selected, then confirm **Run workflow**.
+4. Open the run to see one job for each of the seven supported Minecraft versions.
+
+All seven jobs run independently and mostly in parallel. A green check means that version completed the asserted client behavior suite. A red cross identifies the failed version; its **Artifacts** section contains available logs, screenshots, crash reports, and incomplete benchmark files for seven days.
+
+The GitHub clients render through a virtual display with software graphics. They validate startup and asserted behavior, but they do not replace the manual smoke test for visual quality, real GPU performance, or compatibility with other mods.
 
 ## Automated tests
 
