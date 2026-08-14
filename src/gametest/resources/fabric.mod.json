@@ -10,6 +10,9 @@
             "com.itsgeorge.performanceoverlay.gametest.PerformanceOverlayWorldClientGameTest"
         ]
     },
+    "mixins": [
+        "performanceoverlay-client-tests.mixins.json"
+    ],
     "depends": {
         "fabricloader": "*",
         "minecraft": "1.21.11",

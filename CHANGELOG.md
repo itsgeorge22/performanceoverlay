@@ -1,6 +1,8 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Reduced automated client-test world loading work without reducing test coverage.
+- Prevented slow GitHub runners from prematurely timing out Minecraft 1.21.x test worlds.
 - Improved GitHub client-test reliability on slow runners and updated deprecated workflow actions.
 - Added optional GitHub client testing for every supported Minecraft version with per-version results and failure evidence.
 - Added a separate Java 25 build verified on Minecraft 26.2 with the complete packaged-JAR client suite.

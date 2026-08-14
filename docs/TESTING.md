@@ -39,6 +39,10 @@ All seven jobs run independently and mostly in parallel. A green check means tha
 
 Each CI job retries the complete client test once if its first attempt fails. This covers occasional fixed-timeout world-loading failures on slower virtual runners; a repeatable mod or assertion failure still makes the job red.
 
+The Minecraft 1.21.x test mod extends Fabric's fixed world-loading allowance from one minute to three minutes. Successful worlds continue immediately after loading; only a genuinely slow or stuck world uses the extra time. The test-only mixin is not packaged in release JARs.
+
+The client suite uses Minecraft's minimum render distance and simulation distance while creating its temporary world. This reduces test-world generation and rendering work without removing any overlay, keybind, settings, metric, benchmark, dimension, or shutdown assertions.
+
 The GitHub clients render through a virtual display with software graphics. They validate startup and asserted behavior, but they do not replace the manual smoke test for visual quality, real GPU performance, or compatibility with other mods.
 
 ## Automated tests
@@ -159,6 +163,7 @@ These tests validate integration only. Exact metric calculations remain covered 
 - [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.9.
 - [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.10.
 - [x] Run the complete client integration suite on the 1.21.11 build target.
+- [x] Allow Minecraft 1.21.x test worlds enough time to load on slower CI runners.
 - [x] Add a Java 25 client integration target for the Minecraft 26.1.2 build line.
 - [x] Run its built JAR through the complete client suite on Minecraft 26.1, 26.1.1, and 26.1.2.
 - [x] Add a separate Minecraft 26.2 build and packaged-JAR client integration target.
