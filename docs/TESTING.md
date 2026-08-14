@@ -37,6 +37,8 @@ GitHub runs `build` on every push and pull request. The complete real-client com
 
 All seven jobs run independently and mostly in parallel. A green check means that version completed the asserted client behavior suite. A red cross identifies the failed version; its **Artifacts** section contains available logs, screenshots, crash reports, and incomplete benchmark files for seven days.
 
+If a test world takes longer than 30 seconds to load, the client-test log records JVM memory, deadlock detection, and complete thread stacks after 30, 60, and 120 seconds. These diagnostics identify what Minecraft's server and worker threads were doing before a world-loading timeout.
+
 Each CI job retries the complete client test once if its first attempt fails. This covers occasional fixed-timeout world-loading failures on slower virtual runners; a repeatable mod or assertion failure still makes the job red.
 
 The Minecraft 1.21.x test mod extends Fabric's fixed world-loading allowance from one minute to three minutes. Successful worlds continue immediately after loading; only a genuinely slow or stuck world uses the extra time. The test-only mixin is not packaged in release JARs.

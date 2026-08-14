@@ -1,6 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Added automatic diagnostics for stalled automated test-world loading.
 - Prevented automated client rendering from starving test-world loading on slower runners.
 - Reduced automated client-test world loading work without reducing test coverage.
 - Prevented slow GitHub runners from prematurely timing out Minecraft 1.21.x test worlds.

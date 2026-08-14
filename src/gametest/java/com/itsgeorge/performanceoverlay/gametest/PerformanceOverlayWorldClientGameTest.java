@@ -57,7 +57,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         });
 
         String worldLeftBenchmarkPath;
-        try (TestSingleplayerContext singleplayer = context.worldBuilder().create()) {
+        try (TestSingleplayerContext singleplayer = createTestWorld(context)) {
             waitForChunksRender(singleplayer);
 
             context.waitFor(client -> client.level != null
@@ -93,6 +93,12 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
 
         context.waitFor(client -> !tracker.isBenchmarkActive());
         assertCompleteBenchmarkCsv(Path.of(worldLeftBenchmarkPath), "WORLD_LEFT", false);
+    }
+
+    private static TestSingleplayerContext createTestWorld(ClientGameTestContext context) {
+        try (WorldLoadDiagnostics ignored = WorldLoadDiagnostics.start()) {
+            return context.worldBuilder().create();
+        }
     }
 
     private static void waitForChunksRender(TestSingleplayerContext singleplayer) {
