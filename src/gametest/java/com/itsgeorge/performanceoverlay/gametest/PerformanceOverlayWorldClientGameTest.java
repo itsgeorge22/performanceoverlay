@@ -157,7 +157,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         context.getInput().pressKey(GLFW.GLFW_KEY_F10);
         context.waitFor(client -> tracker.isBenchmarkActive());
         String benchmarkPath = context.computeOnClient(client -> getStringField(tracker, "benchmarkFilePath"));
-        context.waitTicks(20);
+        context.waitFor(client -> getDoubleField(tracker, "cachedAvg") > 0);
 
         long capturedFrames = context.computeOnClient(client -> getLongField(tracker, "benchmarkFrameCount"));
         if (capturedFrames <= 0) {
@@ -764,6 +764,16 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
             Field field = FpsTracker.class.getDeclaredField(fieldName);
             field.setAccessible(true);
             return field.getLong(tracker);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not inspect Performance Overlay field: " + fieldName, e);
+        }
+    }
+
+    private static double getDoubleField(FpsTracker tracker, String fieldName) {
+        try {
+            Field field = FpsTracker.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.getDouble(tracker);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Could not inspect Performance Overlay field: " + fieldName, e);
         }

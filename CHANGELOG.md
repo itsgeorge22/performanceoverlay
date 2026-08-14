@@ -1,6 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Improved GitHub client-test reliability on slow runners and updated deprecated workflow actions.
 - Added optional GitHub client testing for every supported Minecraft version with per-version results and failure evidence.
 - Added a separate Java 25 build verified on Minecraft 26.2 with the complete packaged-JAR client suite.
 - Added a separate Java 25 build verified on Minecraft 26.1, 26.1.1, and 26.1.2 with the complete automated client suite.

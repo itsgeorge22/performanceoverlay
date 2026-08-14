@@ -37,6 +37,8 @@ GitHub runs `build` on every push and pull request. The complete real-client com
 
 All seven jobs run independently and mostly in parallel. A green check means that version completed the asserted client behavior suite. A red cross identifies the failed version; its **Artifacts** section contains available logs, screenshots, crash reports, and incomplete benchmark files for seven days.
 
+Each CI job retries the complete client test once if its first attempt fails. This covers occasional fixed-timeout world-loading failures on slower virtual runners; a repeatable mod or assertion failure still makes the job red.
+
 The GitHub clients render through a virtual display with software graphics. They validate startup and asserted behavior, but they do not replace the manual smoke test for visual quality, real GPU performance, or compatibility with other mods.
 
 ## Automated tests
@@ -143,6 +145,7 @@ These tests validate integration only. Exact metric calculations remain covered 
 - [x] Confirm manual and automatic stops both work.
 - [x] Confirm the CSV contains metadata, ordered frame rows, an end reason, and `# SUMMARY`.
 - [x] Confirm the CSV remains complete when overlay metrics are hidden.
+- [x] Wait for rolling Average FPS to become available before validating hidden-overlay CSV completeness.
 - [x] Confirm write failures produce an error instead of leaving stale benchmark state.
 
 ### 7. World and shutdown lifecycle
