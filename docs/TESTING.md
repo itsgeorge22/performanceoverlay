@@ -26,7 +26,7 @@ Coding agents run the relevant tests after making changes, so these commands are
 
 Use the root `testSupportedVersions` task for the most complete automated check before a release. Minecraft opens and closes once for each of the seven supported versions across all three JARs. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
 
-GitHub runs `build` on every push and pull request. The complete real-client compatibility matrix can also be started manually from GitHub without using the local computer.
+GitHub runs `build` on every push and pull request. The complete real-client compatibility matrix can also be started manually from GitHub without using the local computer, and it runs automatically as a required gate before a tagged release can be built.
 
 ### Run the client tests on GitHub
 

@@ -1,6 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Made the complete seven-version Minecraft client suite an automatic gate for tagged releases.
 - Reduced automated client-test resource use by disabling audio, narrator, online multiplayer services, telemetry, clouds, mipmaps, biome blending, and nonessential particles.
 - Added automatic diagnostics for stalled automated test-world loading.
 - Disabled loading-screen blur in automated client tests to prevent software OpenGL from stalling synchronized test ticks.

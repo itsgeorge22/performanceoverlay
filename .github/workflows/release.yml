@@ -9,7 +9,11 @@ permissions:
   contents: write
 
 jobs:
+  client-tests:
+    uses: ./.github/workflows/client-tests.yml
+
   build:
+    needs: client-tests
     runs-on: ubuntu-latest
 
     steps:

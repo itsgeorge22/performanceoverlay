@@ -78,7 +78,7 @@ Any I/O redesign must preserve current CSV data, support long runs safely, repor
 - [x] Add and run the Minecraft 1.21.11 client integration suite defined in `docs/TESTING.md`.
 - [x] Run the release JAR through the complete client behavior suite on Minecraft 1.21.9, 1.21.10, and 1.21.11 with one local command.
 - [x] Add manually triggered CI client tests for every version declared by each build, with per-version results and failure evidence.
-- [ ] Promote the CI client tests to an automatic release gate after the GitHub workflow is proven reliable.
+- [x] Promote the CI client tests to an automatic release gate after the GitHub workflow is proven reliable.
 
 The declared compatibility range of each JAR must remain limited to versions verified with that build. Supporting future releases is an ongoing maintenance target, not a claim that existing JARs will automatically work on them.
 

@@ -42,9 +42,10 @@ Only proceed after explicit release approval.
 2. Push the release commit to `main`.
 3. Create a tag using `vX.X.X`, for example `v1.0.1`.
 4. Push the tag to trigger the GitHub release workflow.
-5. Monitor the workflow until it succeeds.
-6. Verify that the GitHub Release exists and contains all three correct non-sources JARs.
-7. Include a full changelog link in the release description:
+5. Monitor the seven-version Minecraft client-test gate. Release building begins only after every version passes.
+6. Monitor the release build until it succeeds. A failed client test prevents the GitHub Release from being created.
+7. Verify that the GitHub Release exists and contains all three correct non-sources JARs.
+8. Include a full changelog link in the release description:
 
    ```markdown
    **Full Changelog**: [https://github.com/itsgeorge22/performanceoverlay/compare/vX.X.X](https://github.com/itsgeorge22/performanceoverlay/compare/vX.X.X)
