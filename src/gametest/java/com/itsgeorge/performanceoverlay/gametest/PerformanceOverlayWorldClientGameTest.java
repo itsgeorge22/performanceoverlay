@@ -25,6 +25,7 @@ import java.util.Locale;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class PerformanceOverlayWorldClientGameTest implements FabricClientGameTest {
+    private static final int TEST_FRAMERATE_LIMIT = 30;
     private static final int TEST_RENDER_DISTANCE = 2;
     private static final int TEST_SIMULATION_DISTANCE = 5;
 
@@ -32,6 +33,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
     public void runTest(ClientGameTestContext context) {
         OverlayConfig config = context.computeOnClient(client -> PerformanceOverlayClient.getConfig());
         FpsTracker tracker = context.computeOnClient(client -> {
+            client.options.framerateLimit().set(TEST_FRAMERATE_LIMIT);
             client.options.renderDistance().set(TEST_RENDER_DISTANCE);
             client.options.simulationDistance().set(TEST_SIMULATION_DISTANCE);
             config.enabled = true;

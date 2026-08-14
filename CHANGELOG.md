@@ -1,6 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Prevented automated client rendering from starving test-world loading on slower runners.
 - Reduced automated client-test world loading work without reducing test coverage.
 - Prevented slow GitHub runners from prematurely timing out Minecraft 1.21.x test worlds.
 - Improved GitHub client-test reliability on slow runners and updated deprecated workflow actions.
