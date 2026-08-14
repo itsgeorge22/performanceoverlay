@@ -45,6 +45,8 @@ fabricApi {
 	}
 }
 
+apply from: file('../../gradle/client-test-environment.gradle')
+
 sourceSets {
 	client {
 		java.srcDirs = [new File(repositoryRoot, 'src/client/java'), file('src/client/java')]

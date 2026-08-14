@@ -43,7 +43,7 @@ Each CI job retries the complete client test once if its first attempt fails. Th
 
 The Minecraft 1.21.x test mod extends Fabric's fixed world-loading allowance from one minute to three minutes. Successful worlds continue immediately after loading; only a genuinely slow or stuck world uses the extra time. The test-only mixin is not packaged in release JARs.
 
-The client suite caps Minecraft at 30 FPS and uses its minimum render distance and simulation distance while creating its temporary world. This prevents software rendering from starving the integrated server and reduces test-world work without removing any overlay, keybind, settings, metric, benchmark, dimension, or shutdown assertions.
+The client suite caps Minecraft at 30 FPS and disables menu background blur, audio output, narrator, online multiplayer/chat/profile services, Realms checks, telemetry, clouds, mipmaps, biome blending, and nonessential particles. It also uses the minimum render distance and simulation distance while creating its temporary world. These settings reduce rendering, audio, and network work without removing any overlay, keybind, settings, metric, benchmark, dimension, or shutdown assertions.
 
 The GitHub clients render through a virtual display with software graphics. They validate startup and asserted behavior, but they do not replace the manual smoke test for visual quality, real GPU performance, or compatibility with other mods.
 

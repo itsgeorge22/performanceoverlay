@@ -3,7 +3,8 @@
   "package": "com.itsgeorge.performanceoverlay.gametest.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ClientGameTestTimeoutMixin"
+    "ClientGameTestTimeoutMixin",
+    "ClientServiceIsolationMixin"
   ],
   "injectors": {
     "defaultRequire": 1

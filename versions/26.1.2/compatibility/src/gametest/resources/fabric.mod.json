@@ -10,6 +10,9 @@
             "com.itsgeorge.performanceoverlay.gametest.PerformanceOverlayWorldClientGameTest"
         ]
     },
+    "mixins": [
+        "performanceoverlay-client-tests.mixins.json"
+    ],
     "depends": {
         "fabricloader": ">=0.19.3",
         "minecraft": ">=26.1 <=26.1.2",

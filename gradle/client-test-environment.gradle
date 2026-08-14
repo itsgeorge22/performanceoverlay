@@ -1,0 +1,22 @@
+tasks.named('runClientGameTest').configure {
+    args '--disableMultiplayer', '--disableChat', '--offlineDeveloperMode'
+    environment 'ALSOFT_DRIVERS', 'null'
+
+    doFirst {
+        def optionsFile = new File(layout.buildDirectory.dir('run/clientGameTest').get().asFile, 'options.txt')
+        optionsFile.parentFile.mkdirs()
+        optionsFile.setText('''maxFps:30
+renderDistance:2
+simulationDistance:5
+menuBackgroundBlurriness:0
+biomeBlendRadius:0
+mipmapLevels:0
+narrator:0
+particles:2
+renderClouds:"false"
+realmsNotifications:false
+telemetryOptInExtra:false
+soundCategory_master:0.0
+''', 'UTF-8')
+    }
+}

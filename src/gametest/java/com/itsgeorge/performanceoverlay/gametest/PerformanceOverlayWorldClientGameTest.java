@@ -8,8 +8,13 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.NarratorStatus;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.multiplayer.ProfileKeyPairManager;
+import net.minecraft.server.level.ParticleStatus;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import org.lwjgl.glfw.GLFW;
 
@@ -26,6 +31,9 @@ import java.util.Locale;
 @SuppressWarnings("UnstableApiUsage")
 public final class PerformanceOverlayWorldClientGameTest implements FabricClientGameTest {
     private static final int TEST_FRAMERATE_LIMIT = 30;
+    private static final int TEST_MENU_BACKGROUND_BLURRINESS = 0;
+    private static final int TEST_MIPMAP_LEVELS = 0;
+    private static final int TEST_BIOME_BLEND_RADIUS = 0;
     private static final int TEST_RENDER_DISTANCE = 2;
     private static final int TEST_SIMULATION_DISTANCE = 5;
 
@@ -33,9 +41,20 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
     public void runTest(ClientGameTestContext context) {
         OverlayConfig config = context.computeOnClient(client -> PerformanceOverlayClient.getConfig());
         FpsTracker tracker = context.computeOnClient(client -> {
+            verifyIsolatedClientServices(client);
             client.options.framerateLimit().set(TEST_FRAMERATE_LIMIT);
+            client.options.menuBackgroundBlurriness().set(TEST_MENU_BACKGROUND_BLURRINESS);
+            client.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(0.0);
+            client.options.narrator().set(NarratorStatus.OFF);
+            client.options.realmsNotifications().set(false);
+            client.options.telemetryOptInExtra().set(false);
+            client.options.particles().set(ParticleStatus.MINIMAL);
+            client.options.cloudStatus().set(CloudStatus.OFF);
+            client.options.mipmapLevels().set(TEST_MIPMAP_LEVELS);
+            client.options.biomeBlendRadius().set(TEST_BIOME_BLEND_RADIUS);
             client.options.renderDistance().set(TEST_RENDER_DISTANCE);
             client.options.simulationDistance().set(TEST_SIMULATION_DISTANCE);
+            verifyLowResourceOptions(client);
             config.enabled = true;
             config.position = OverlayConfig.OverlayPosition.TOP_LEFT;
             config.offsetX = 8;
@@ -93,6 +112,32 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
 
         context.waitFor(client -> !tracker.isBenchmarkActive());
         assertCompleteBenchmarkCsv(Path.of(worldLeftBenchmarkPath), "WORLD_LEFT", false);
+    }
+
+    private static void verifyIsolatedClientServices(Minecraft client) {
+        if (client.allowsMultiplayer() || client.allowsRealms() || client.allowsTelemetry()) {
+            throw new AssertionError("Automated client tests must not enable online services or telemetry");
+        }
+        if (client.getProfileKeyPairManager() != ProfileKeyPairManager.EMPTY_KEY_MANAGER) {
+            throw new AssertionError("Automated client tests must use the offline profile key manager");
+        }
+    }
+
+    private static void verifyLowResourceOptions(Minecraft client) {
+        if (client.options.framerateLimit().get() != TEST_FRAMERATE_LIMIT
+                || client.options.menuBackgroundBlurriness().get() != TEST_MENU_BACKGROUND_BLURRINESS
+                || client.options.getSoundSourceOptionInstance(SoundSource.MASTER).get() != 0.0
+                || client.options.narrator().get() != NarratorStatus.OFF
+                || client.options.realmsNotifications().get()
+                || client.options.telemetryOptInExtra().get()
+                || client.options.particles().get() != ParticleStatus.MINIMAL
+                || client.options.cloudStatus().get() != CloudStatus.OFF
+                || client.options.mipmapLevels().get() != TEST_MIPMAP_LEVELS
+                || client.options.biomeBlendRadius().get() != TEST_BIOME_BLEND_RADIUS
+                || client.options.renderDistance().get() != TEST_RENDER_DISTANCE
+                || client.options.simulationDistance().get() != TEST_SIMULATION_DISTANCE) {
+            throw new AssertionError("Automated client tests must use the low-resource option profile");
+        }
     }
 
     private static TestSingleplayerContext createTestWorld(ClientGameTestContext context) {

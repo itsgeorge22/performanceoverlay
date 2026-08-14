@@ -37,6 +37,8 @@ fabricApi {
     }
 }
 
+apply from: file('../gradle/client-test-environment.gradle')
+
 sourceSets {
     gametest {
         java.srcDirs = [file('../src/gametest/java')]

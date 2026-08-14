@@ -1,8 +1,9 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Reduced automated client-test resource use by disabling audio, narrator, online multiplayer services, telemetry, clouds, mipmaps, biome blending, and nonessential particles.
 - Added automatic diagnostics for stalled automated test-world loading.
-- Prevented automated client rendering from starving test-world loading on slower runners.
+- Disabled loading-screen blur in automated client tests to prevent software OpenGL from stalling synchronized test ticks.
 - Reduced automated client-test world loading work without reducing test coverage.
 - Prevented slow GitHub runners from prematurely timing out Minecraft 1.21.x test worlds.
 - Improved GitHub client-test reliability on slow runners and updated deprecated workflow actions.
