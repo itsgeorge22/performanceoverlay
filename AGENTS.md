@@ -46,6 +46,16 @@ After changing behavior:
 - Maintain `docs/ROADMAP.md` as planned work is completed, added, removed, or reprioritized; keep release-specific details in `CHANGELOG.md`.
 - Explicitly call out known limitations that remain relevant to the task.
 
+## Validation policy
+
+The coding agent is responsible for running the relevant automated tests. Do not require the user to run tests to establish that an implementation works; manual commands may still be provided for optional independent verification.
+
+- Run `gradlew.bat test` on Windows or `./gradlew test` elsewhere after logic-only changes.
+- Run `gradlew.bat runClientGameTest` on Windows or `./gradlew runClientGameTest` elsewhere after changes that affect Minecraft startup, runtime events, rendering, settings integration, key bindings, or benchmark lifecycle behavior on the current 1.21.11 development target.
+- Run `gradlew.bat testSupportedVersions` on Windows or `./gradlew testSupportedVersions` elsewhere after compatibility-sensitive changes and before every release. This is the authoritative automated check for every Minecraft version declared as supported by the current JAR.
+- Documentation-only changes do not require the code test suites.
+- Report which commands were run and whether they passed. If a relevant suite cannot be run, explain why instead of presenting the change as fully verified.
+
 ## Measurement rules
 
 The current primary frame sample is the elapsed nanoseconds between eligible HUD render callbacks, measured with `System.nanoTime()`.

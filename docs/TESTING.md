@@ -1,5 +1,27 @@
 # Testing
 
+## Quick command guide
+
+Coding agents run the relevant tests after making changes, so these commands are only needed for independent manual verification.
+
+```powershell
+# Fast logic tests without opening Minecraft
+.\gradlew.bat test
+
+# Real Minecraft test on the 1.21.11 development target
+.\gradlew.bat runClientGameTest
+
+# Real Minecraft tests on every supported version
+.\gradlew.bat testSupportedVersions
+
+# Clean build of the JAR plus logic tests
+.\gradlew.bat clean build
+```
+
+Use `testSupportedVersions` for the most complete automated check before a release. Minecraft opens and closes once for each supported version. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
+
+GitHub currently runs `build` on every push and pull request. Real Minecraft client tests run locally because they launch the graphical game client.
+
 ## Automated tests
 
 Run the complete build, including metric tests:
