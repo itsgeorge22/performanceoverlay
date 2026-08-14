@@ -73,7 +73,7 @@ Any I/O redesign must preserve current CSV data, support long runs safely, repor
 - [x] Create a separate Java 25, unobfuscated build line targeting Minecraft 26.1.2.
 - [x] Test the 26.1.2 JAR on Minecraft 26.1, 26.1.1, and 26.1.2; declare one 26.1-26.1.2 range only after every version passes.
 - [x] Port the 26.1.2 build line to Minecraft 26.2 and verify it as a separate 26.2 JAR.
-- [ ] Combine modern version ranges only when the same built JAR passes the complete client suite on every declared version.
+- [x] Keep Minecraft 26.1-26.1.2 and 26.2 as separate JAR ranges: the 26.1 JAR fails the 26.2 client suite because Minecraft moved the HUD notification API.
 - [ ] Continue porting and verifying later stable releases as they become available.
 - [x] Add and run the Minecraft 1.21.11 client integration suite defined in `docs/TESTING.md`.
 - [x] Run the release JAR through the complete client behavior suite on Minecraft 1.21.9, 1.21.10, and 1.21.11 with one local command.
