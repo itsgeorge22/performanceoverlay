@@ -70,8 +70,8 @@ Any I/O redesign must preserve current CSV data, support long runs safely, repor
 - [x] Define the current supported range as Minecraft 1.21.9–1.21.11.
 - [x] Manually verify Minecraft 1.21.9, 1.21.10, and 1.21.11.
 - [x] Defer Minecraft 1.21–1.21.8 unless user demand justifies maintaining additional builds.
-- [ ] Create a separate Java 25, unobfuscated build line targeting Minecraft 26.1.2.
-- [ ] Test the 26.1.2 JAR on Minecraft 26.1, 26.1.1, and 26.1.2; declare one 26.1-26.1.2 range only if every version passes.
+- [x] Create a separate Java 25, unobfuscated build line targeting Minecraft 26.1.2.
+- [x] Test the 26.1.2 JAR on Minecraft 26.1, 26.1.1, and 26.1.2; declare one 26.1-26.1.2 range only after every version passes.
 - [ ] Port the 26.1.2 build line to Minecraft 26.2 and initially publish it as a separate 26.2 JAR.
 - [ ] Combine modern version ranges only when the same built JAR passes the complete client suite on every declared version.
 - [ ] Continue porting and verifying later stable releases as they become available.

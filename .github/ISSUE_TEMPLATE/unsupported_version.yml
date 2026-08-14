@@ -7,7 +7,8 @@ body:
     attributes:
       value: |
         Performance Overlay supports:
-        - **Minecraft: 1.21.9–1.21.11**
+        - **Minecraft 1.21.9–1.21.11** with the matching Java 21 JAR
+        - **Minecraft 26.1–26.1.2** with the matching Java 25 JAR
         - **Loader: Fabric**
         - Requires: **Fabric API**, **Cloth Config**
 

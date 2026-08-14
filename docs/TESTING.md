@@ -16,9 +16,12 @@ Coding agents run the relevant tests after making changes, so these commands are
 
 # Clean build of the JAR plus logic tests
 .\gradlew.bat clean build
+
+# Clean build of the Minecraft 26.1–26.1.2 JAR plus logic tests
+.\versions\26.1.2\gradlew.bat -p versions\26.1.2 clean build
 ```
 
-Use `testSupportedVersions` for the most complete automated check before a release. Minecraft opens and closes once for each supported version. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
+Use the root `testSupportedVersions` task for the most complete automated check before a release. Minecraft opens and closes once for each of the six supported versions across both JARs. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
 
 GitHub currently runs `build` on every push and pull request. Real Minecraft client tests run locally because they launch the graphical game client.
 
@@ -63,6 +66,14 @@ Run the same client behavior suite against every currently supported Minecraft v
 ```
 
 Individual version commands are `test12109`, `test12110`, and `test12111`. The 1.21.9 and 1.21.10 tasks build the normal release JAR first, then load that JAR with the target Minecraft version and matching dependencies. The combined command runs versions sequentially to keep their client-test files separate.
+
+Run only the Java 25 JAR's complete compatibility matrix from the repository root with:
+
+```powershell
+.\gradlew.bat test261SupportedVersions
+```
+
+Its individual client commands are `test261`, `test2611`, and `test2612` in the `versions/26.1.2` build. Gradle automatically obtains a Java 25 toolchain when needed. Every task loads the same built 26.1–26.1.2 JAR rather than recompiling a different mod for each patch version.
 
 ### 2. Overlay rendering
 
@@ -123,8 +134,8 @@ These tests validate integration only. Exact metric calculations remain covered 
 - [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.9.
 - [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.10.
 - [x] Run the complete client integration suite on the 1.21.11 build target.
-- [ ] Add a Java 25 client integration target for the Minecraft 26.1.2 build line.
-- [ ] Run its built JAR through the complete client suite on Minecraft 26.1, 26.1.1, and 26.1.2.
+- [x] Add a Java 25 client integration target for the Minecraft 26.1.2 build line.
+- [x] Run its built JAR through the complete client suite on Minecraft 26.1, 26.1.1, and 26.1.2.
 - [ ] Add a separate Minecraft 26.2 build and client integration target.
 - [x] Provide one command that requires every declared supported version to pass before release.
 

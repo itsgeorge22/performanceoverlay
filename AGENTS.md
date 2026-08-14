@@ -52,7 +52,8 @@ The coding agent is responsible for running the relevant automated tests. Do not
 
 - Run `gradlew.bat test` on Windows or `./gradlew test` elsewhere after logic-only changes.
 - Run `gradlew.bat runClientGameTest` on Windows or `./gradlew runClientGameTest` elsewhere after changes that affect Minecraft startup, runtime events, rendering, settings integration, key bindings, or benchmark lifecycle behavior on the current 1.21.11 development target.
-- Run `gradlew.bat testSupportedVersions` on Windows or `./gradlew testSupportedVersions` elsewhere after compatibility-sensitive changes and before every release. This is the authoritative automated check for every Minecraft version declared as supported by the current JAR.
+- Run `versions/26.1.2/gradlew.bat -p versions/26.1.2 runClientGameTest` on Windows or `bash ./versions/26.1.2/gradlew -p versions/26.1.2 runClientGameTest` elsewhere after changes specific to the Java 25 Minecraft 26.1 build line.
+- Run `gradlew.bat testSupportedVersions` on Windows or `./gradlew testSupportedVersions` elsewhere after compatibility-sensitive changes and before every release. This is the authoritative automated check for every Minecraft version declared by both current JARs.
 - Documentation-only changes do not require the code test suites.
 - Report which commands were run and whether they passed. If a relevant suite cannot be run, explain why instead of presenting the change as fully verified.
 

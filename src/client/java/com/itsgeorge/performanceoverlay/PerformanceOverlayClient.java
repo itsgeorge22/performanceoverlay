@@ -8,7 +8,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -89,7 +88,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         );
 
         // IMPORTANT: order of registration = order in Controls
-        toggleKey = KeyBindingHelper.registerKeyBinding(
+        toggleKey = registerKeyMapping(
                 new KeyMapping(
                         "key.performanceoverlay.toggle",
                         InputConstants.Type.KEYSYM,
@@ -98,7 +97,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 )
         );
 
-        cycleLayoutKey = KeyBindingHelper.registerKeyBinding(
+        cycleLayoutKey = registerKeyMapping(
                 new KeyMapping(
                         "key.performanceoverlay.cycle_layout",
                         InputConstants.Type.KEYSYM,
@@ -107,7 +106,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 )
         );
 
-        resetKey = KeyBindingHelper.registerKeyBinding(
+        resetKey = registerKeyMapping(
                 new KeyMapping(
                         "key.performanceoverlay.reset",
                         InputConstants.Type.KEYSYM,
@@ -116,7 +115,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 )
         );
 
-        benchmarkKey = KeyBindingHelper.registerKeyBinding(
+        benchmarkKey = registerKeyMapping(
                 new KeyMapping(
                         "key.performanceoverlay.benchmark",
                         InputConstants.Type.KEYSYM,
@@ -288,6 +287,29 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         lastBenchmarkActionbarUpdateNs = 0;
     }
 
+    private static KeyMapping registerKeyMapping(KeyMapping keyMapping) {
+        String[] helperClasses = {
+                "net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper",
+                "net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper"
+        };
+        String[] helperMethods = {"registerKeyMapping", "registerKeyBinding"};
+
+        for (int i = 0; i < helperClasses.length; i++) {
+            try {
+                Class<?> helperClass = Class.forName(helperClasses[i]);
+                return (KeyMapping) helperClass
+                        .getMethod(helperMethods[i], KeyMapping.class)
+                        .invoke(null, keyMapping);
+            } catch (ClassNotFoundException ignored) {
+                // Try the API name used by the other supported Minecraft build line.
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Could not register Performance Overlay key mapping", e);
+            }
+        }
+
+        throw new IllegalStateException("No supported Fabric key-mapping API was found");
+    }
+
     private static OverlayConfig.TextLayout nextLayout(OverlayConfig.TextLayout current) {
         if (current == OverlayConfig.TextLayout.ONE_LINE) {
             return OverlayConfig.TextLayout.THREE_LINES;
@@ -307,7 +329,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 .append(Component.literal(enabled ? "ON" : "OFF")
                         .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED));
 
-        client.player.displayClientMessage(msg, true);
+        client.gui.setOverlayMessage(msg, false);
     }
 
     private static void showResetActionbar(Minecraft client) {
@@ -318,14 +340,27 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         if (client == null || client.player == null) {
             return;
         }
-        client.player.displayClientMessage(msg, true);
+        client.gui.setOverlayMessage(msg, false);
     }
 
     private static void showChat(Minecraft client, Component msg) {
         if (client == null || client.player == null) {
             return;
         }
-        client.player.displayClientMessage(msg, false);
+
+        try {
+            client.player.getClass().getMethod("sendSystemMessage", Component.class).invoke(client.player, msg);
+        } catch (NoSuchMethodException ignored) {
+            try {
+                client.player.getClass()
+                        .getMethod("displayClientMessage", Component.class, boolean.class)
+                        .invoke(client.player, msg, false);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Could not display Performance Overlay chat message", e);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Could not display Performance Overlay chat message", e);
+        }
     }
 
     private static void showBenchmarkProgressActionbar(Minecraft client, long nowNs) {
@@ -356,7 +391,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             msg = msg.append(Component.literal("(" + elapsedSec + "s)").withStyle(ChatFormatting.GRAY));
         }
 
-        client.player.displayClientMessage(msg, true);
+        client.gui.setOverlayMessage(msg, false);
     }
 
     private static void showBenchmarkStarted(Minecraft client, int durationSec) {

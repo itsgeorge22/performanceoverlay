@@ -49,7 +49,7 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
 
         String worldLeftBenchmarkPath;
         try (TestSingleplayerContext singleplayer = context.worldBuilder().create()) {
-            singleplayer.getClientWorld().waitForChunksRender();
+            waitForChunksRender(singleplayer);
 
             context.waitFor(client -> client.level != null
                     && client.player != null
@@ -84,6 +84,21 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
 
         context.waitFor(client -> !tracker.isBenchmarkActive());
         assertCompleteBenchmarkCsv(Path.of(worldLeftBenchmarkPath), "WORLD_LEFT", false);
+    }
+
+    private static void waitForChunksRender(TestSingleplayerContext singleplayer) {
+        try {
+            Method levelAccessor;
+            try {
+                levelAccessor = singleplayer.getClass().getMethod("getClientLevel");
+            } catch (NoSuchMethodException ignored) {
+                levelAccessor = singleplayer.getClass().getMethod("getClientWorld");
+            }
+            Object clientLevel = levelAccessor.invoke(singleplayer);
+            clientLevel.getClass().getMethod("waitForChunksRender").invoke(clientLevel);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not wait for client chunks to render", e);
+        }
     }
 
     private static String verifyDimensionChangeAndPrepareWorldLeave(

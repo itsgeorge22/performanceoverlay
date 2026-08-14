@@ -8,7 +8,7 @@ Performance Overlay is a Fabric client-only mod. Runtime behavior is small, stat
 
 ## Source layout
 
-Main runtime code is under:
+Shared runtime code is under:
 
 ```text
 src/client/java/com/itsgeorge/performanceoverlay/
@@ -30,6 +30,8 @@ Automated tests are under `src/test/java`. They exercise production metric calcu
 Minecraft client integration tests are isolated under `src/gametest`. They are loaded only by the Fabric client-game-test run and are not packaged in the release JAR. The current tests launch Minecraft 1.21.11, verify that Performance Overlay and its required dependencies initialize, enter a temporary single-player world, wait for rendered chunks, require positive live metrics, verify all three text layouts, all six screen positions, both scale limits, and the Mod Menu configuration-screen entry, simulate guarded F7-F10 behavior, inspect real benchmark exports, cross a dimension during a benchmark, and verify world-departure finalization.
 
 The separate `compatibility` Gradle project compiles those test classes for Minecraft 1.21.9 and 1.21.10 while loading the normal remapped release JAR as the mod under test. Root verification tasks select matching target dependencies and run each supported version sequentially.
+
+`versions/26.1.2` is a separate Java 25, unobfuscated Fabric build line. It reuses the shared runtime and test sources, replaces only the version-sensitive `OverlayRenderer`, and produces one JAR declared for Minecraft 26.1–26.1.2. Its nested compatibility project loads that exact built JAR and runs the complete client suite separately on all three declared versions.
 
 ## Runtime initialization
 
@@ -182,7 +184,9 @@ The CSV writes `gc_time_delta_ms` only on frames with a fresh GC poll. Intermedi
 
 ## Rendering
 
-`OverlayRenderer.render()`:
+The Java 21 and Java 25 build lines use separate `OverlayRenderer` source files because Minecraft 26.1 replaced `GuiGraphics` HUD drawing with `GuiGraphicsExtractor`. Both implementations preserve the same measurement, anchoring, scaling, caching, and text-drawing behavior.
+
+`OverlayRenderer.render()` / `OverlayRenderer.extractRenderState()`:
 
 1. obtains scaled GUI dimensions and the Minecraft font,
 2. clamps configured scale to 0.5–2.0,
@@ -248,19 +252,16 @@ A dedicated daemon thread owns benchmark CSV row formatting and file writes. The
 
 ## Build/runtime metadata
 
-Confirmed from the repository snapshot:
+The repository produces two release JARs from shared behavior code:
 
-- Java 21
-- Minecraft build target: 1.21.11
-- Fabric Loader: 0.18.4
-- Fabric API: 0.141.1+1.21.11
-- mod version: 1.0.2
-- declared Minecraft compatibility in `fabric.mod.json`: `>=1.21.9 <=1.21.11`
+- Java 21 build target: Minecraft 1.21.11, declared and verified for 1.21.9–1.21.11.
+- Java 25 unobfuscated build target: Minecraft 26.1.2, declared and verified for 26.1–26.1.2.
+- mod version: 1.0.2 in both build-property files
 - environment: `client`
 - Cloth Config is required
 - Mod Menu is recommended
 
-The build targets Minecraft 1.21.11; the v1.0.2 JAR has been manually and automatically verified on Minecraft 1.21.9, 1.21.10, and 1.21.11. Minecraft 1.21.8 fails during client initialization because its key-binding API is incompatible.
+Minecraft 1.21.8 remains unsupported because its key-binding API is incompatible with the Java 21 JAR. The two build lines share initialization through small compatibility bridges for renamed Fabric key-mapping and Minecraft player-message APIs; these run only during initialization or user notifications, not during frame measurement.
 
 ## Current architectural constraints / known risks
 

@@ -7,7 +7,7 @@ name: build
 on: [pull_request, push]
 
 jobs:
-  build:
+  build-java-21:
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
@@ -26,5 +26,25 @@ jobs:
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
+          name: Java-21-artifacts
           path: build/libs/
+
+  build-java-25:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: build Minecraft 26.1–26.1.2 JAR
+        run: bash ./versions/26.1.2/gradlew -p versions/26.1.2 build
+      - name: capture build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Java-25-artifacts
+          path: versions/26.1.2/build/libs/

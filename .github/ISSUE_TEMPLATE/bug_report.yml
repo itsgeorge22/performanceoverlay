@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Before reporting:
-        - Confirm you're on **Minecraft 1.21.9–1.21.11 (Fabric)**
+        - Confirm you're on **Minecraft 1.21.9–1.21.11 or 26.1–26.1.2 (Fabric)** with the matching JAR
         - Confirm **Fabric API** and **Cloth Config** are installed
         - Try reproducing with only Performance Overlay + dependencies
 
@@ -15,7 +15,7 @@ body:
     id: mc
     attributes:
       label: Minecraft version
-      placeholder: "1.21.11"
+      placeholder: "1.21.11 or 26.1.2"
     validations:
       required: true
 
@@ -23,7 +23,7 @@ body:
     id: loader
     attributes:
       label: Loader version (Fabric Loader)
-      placeholder: "0.18.4"
+      placeholder: "0.18.4 or 0.19.3"
     validations:
       required: true
 
@@ -85,7 +85,7 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: I am on Minecraft 1.21.9–1.21.11 (Fabric)
+        - label: I am on a supported Minecraft version with the matching Performance Overlay JAR (Fabric)
           required: true
         - label: I have Fabric API installed
           required: true
