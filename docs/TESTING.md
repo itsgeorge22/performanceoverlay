@@ -123,7 +123,9 @@ These tests validate integration only. Exact metric calculations remain covered 
 - [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.9.
 - [x] Run the complete client behavior suite against the release JAR on Minecraft 1.21.10.
 - [x] Run the complete client integration suite on the 1.21.11 build target.
-- [ ] Add a separate client integration target for Minecraft 26.2 when that port exists.
+- [ ] Add a Java 25 client integration target for the Minecraft 26.1.2 build line.
+- [ ] Run its built JAR through the complete client suite on Minecraft 26.1, 26.1.1, and 26.1.2.
+- [ ] Add a separate Minecraft 26.2 build and client integration target.
 - [x] Provide one command that requires every declared supported version to pass before release.
 
 ### Reliability rules
