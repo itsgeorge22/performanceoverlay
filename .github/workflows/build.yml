@@ -31,6 +31,13 @@ jobs:
 
   build-java-25:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - target: 26.1.2
+            artifact: 26.1-26.1.2
+          - target: 26.2
+            artifact: 26.2
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -41,10 +48,10 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
-      - name: build Minecraft 26.1–26.1.2 JAR
-        run: bash ./versions/26.1.2/gradlew -p versions/26.1.2 build
+      - name: build Java 25 JAR
+        run: bash ./versions/${{ matrix.target }}/gradlew -p versions/${{ matrix.target }} build
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Java-25-artifacts
-          path: versions/26.1.2/build/libs/
+          name: Java-25-${{ matrix.artifact }}-artifacts
+          path: versions/${{ matrix.target }}/build/libs/

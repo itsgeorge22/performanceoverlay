@@ -8,6 +8,8 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.level.Level;
 import org.lwjgl.glfw.GLFW;
 
@@ -90,12 +92,16 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
         try {
             Method levelAccessor;
             try {
-                levelAccessor = singleplayer.getClass().getMethod("getClientLevel");
+                levelAccessor = singleplayer.getClass().getMethod("getConnection");
             } catch (NoSuchMethodException ignored) {
-                levelAccessor = singleplayer.getClass().getMethod("getClientWorld");
+                try {
+                    levelAccessor = singleplayer.getClass().getMethod("getClientLevel");
+                } catch (NoSuchMethodException olderApi) {
+                    levelAccessor = singleplayer.getClass().getMethod("getClientWorld");
+                }
             }
-            Object clientLevel = levelAccessor.invoke(singleplayer);
-            clientLevel.getClass().getMethod("waitForChunksRender").invoke(clientLevel);
+            Object chunkContext = levelAccessor.invoke(singleplayer);
+            chunkContext.getClass().getMethod("waitForChunksRender").invoke(chunkContext);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Could not wait for client chunks to render", e);
         }
@@ -189,15 +195,46 @@ public final class PerformanceOverlayWorldClientGameTest implements FabricClient
     }
 
     private static void verifySettingsScreenOpens(ClientGameTestContext context) {
-        context.runOnClient(client -> client.setScreen(
-                new PerformanceOverlayModMenu().getModConfigScreenFactory().create(client.screen)
+        context.runOnClient(client -> setScreen(
+                client,
+                new PerformanceOverlayModMenu().getModConfigScreenFactory().create(getScreen(client))
         ));
-        context.waitFor(client -> client.screen != null
-                && "Performance Overlay".equals(client.screen.getTitle().getString()));
+        context.waitFor(client -> {
+            Screen screen = getScreen(client);
+            return screen != null && "Performance Overlay".equals(screen.getTitle().getString());
+        });
         context.takeScreenshot("performance-overlay-settings");
 
-        context.runOnClient(client -> client.setScreen(null));
-        context.waitFor(client -> client.screen == null);
+        context.runOnClient(client -> setScreen(client, null));
+        context.waitFor(client -> getScreen(client) == null);
+    }
+
+    private static Screen getScreen(Minecraft client) {
+        try {
+            return (Screen) client.getClass().getField("screen").get(client);
+        } catch (NoSuchFieldException ignored) {
+            try {
+                return (Screen) client.gui.getClass().getMethod("screen").invoke(client.gui);
+            } catch (ReflectiveOperationException e) {
+                throw new AssertionError("Could not read the current Minecraft screen", e);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not read the current Minecraft screen", e);
+        }
+    }
+
+    private static void setScreen(Minecraft client, Screen screen) {
+        try {
+            client.getClass().getMethod("setScreen", Screen.class).invoke(client, screen);
+        } catch (NoSuchMethodException ignored) {
+            try {
+                client.gui.getClass().getMethod("setScreen", Screen.class).invoke(client.gui, screen);
+            } catch (ReflectiveOperationException e) {
+                throw new AssertionError("Could not set the current Minecraft screen", e);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Could not set the current Minecraft screen", e);
+        }
     }
 
     private static void verifySameTickBenchmarkGuards(

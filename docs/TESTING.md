@@ -19,9 +19,12 @@ Coding agents run the relevant tests after making changes, so these commands are
 
 # Clean build of the Minecraft 26.1–26.1.2 JAR plus logic tests
 .\versions\26.1.2\gradlew.bat -p versions\26.1.2 clean build
+
+# Clean build of the separate Minecraft 26.2 JAR plus logic tests
+.\versions\26.2\gradlew.bat -p versions\26.2 clean build
 ```
 
-Use the root `testSupportedVersions` task for the most complete automated check before a release. Minecraft opens and closes once for each of the six supported versions across both JARs. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
+Use the root `testSupportedVersions` task for the most complete automated check before a release. Minecraft opens and closes once for each of the seven supported versions across all three JARs. Success is reported as `BUILD SUCCESSFUL`; any failed assertion or crash fails the Gradle task. The red benchmark-write error shown during the client test is intentionally generated to verify error handling.
 
 GitHub currently runs `build` on every push and pull request. Real Minecraft client tests run locally because they launch the graphical game client.
 
@@ -43,7 +46,7 @@ The automated suite covers benchmark lifecycle and key guarding, same-tick autom
 
 ## Minecraft client integration tests
 
-The regular JUnit suite does not launch Minecraft. Fabric client game tests are being added gradually in a separate test source set so test-only code is not packaged in release JARs.
+The regular JUnit suite does not launch Minecraft. Fabric client game tests live in a separate test source set so test-only code is not packaged in release JARs.
 
 ### 1. Startup
 
@@ -74,6 +77,14 @@ Run only the Java 25 JAR's complete compatibility matrix from the repository roo
 ```
 
 Its individual client commands are `test261`, `test2611`, and `test2612` in the `versions/26.1.2` build. Gradle automatically obtains a Java 25 toolchain when needed. Every task loads the same built 26.1–26.1.2 JAR rather than recompiling a different mod for each patch version.
+
+Run only the packaged Minecraft 26.2 JAR's complete client suite with:
+
+```powershell
+.\gradlew.bat test262SupportedVersion
+```
+
+The version build also exposes `test262`. Both commands load the built 26.2 JAR as the mod under test.
 
 ### 2. Overlay rendering
 
@@ -136,7 +147,7 @@ These tests validate integration only. Exact metric calculations remain covered 
 - [x] Run the complete client integration suite on the 1.21.11 build target.
 - [x] Add a Java 25 client integration target for the Minecraft 26.1.2 build line.
 - [x] Run its built JAR through the complete client suite on Minecraft 26.1, 26.1.1, and 26.1.2.
-- [ ] Add a separate Minecraft 26.2 build and client integration target.
+- [x] Add a separate Minecraft 26.2 build and packaged-JAR client integration target.
 - [x] Provide one command that requires every declared supported version to pass before release.
 
 ### Reliability rules
@@ -149,6 +160,12 @@ These tests validate integration only. Exact metric calculations remain covered 
 
 ## Manual smoke test
 
+To launch the Minecraft 26.2 development client directly:
+
+```powershell
+.\versions\26.2\gradlew.bat -p versions\26.2 runClient
+```
+
 After metric or benchmark changes:
 
 1. Launch the development client with `runClient` in VS Code.
@@ -157,3 +174,5 @@ After metric or benchmark changes:
 4. Confirm the CSV is saved and ends with `# SUMMARY`.
 5. Confirm the per-frame rows appear before the summary and can be opened normally in Excel or Google Sheets.
 6. Confirm F10 does nothing in the main menu, dimension changes keep a run active, and leaving the world saves it with `# EndReason: WORLD_LEFT`.
+
+The automated Minecraft 26.2 suite currently uses the default OpenGL backend. The experimental Vulkan backend remains manually unverified.

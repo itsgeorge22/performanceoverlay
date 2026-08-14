@@ -73,6 +73,7 @@ CSV files can be opened in Excel, Google Sheets, or any analysis tool as well as
 
 - Minecraft: **1.21.9–1.21.11** using the Java 21 JAR
 - Minecraft: **26.1–26.1.2** using the Java 25 JAR
+- Minecraft: **26.2** using its separate Java 25 JAR
 - Loader: **Fabric**
 - Required:
     - **Fabric API**

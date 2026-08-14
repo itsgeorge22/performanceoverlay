@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Before reporting:
-        - Confirm you're on **Minecraft 1.21.9–1.21.11 or 26.1–26.1.2 (Fabric)** with the matching JAR
+        - Confirm you're on **Minecraft 1.21.9–1.21.11, 26.1–26.1.2, or 26.2 (Fabric)** with the matching JAR
         - Confirm **Fabric API** and **Cloth Config** are installed
         - Try reproducing with only Performance Overlay + dependencies
 
@@ -15,7 +15,7 @@ body:
     id: mc
     attributes:
       label: Minecraft version
-      placeholder: "1.21.11 or 26.1.2"
+      placeholder: "1.21.11, 26.1.2, or 26.2"
     validations:
       required: true
 

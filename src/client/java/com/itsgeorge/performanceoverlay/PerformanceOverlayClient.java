@@ -329,7 +329,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
                 .append(Component.literal(enabled ? "ON" : "OFF")
                         .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED));
 
-        client.gui.setOverlayMessage(msg, false);
+        MinecraftUiBridge.setOverlayMessage(client, msg);
     }
 
     private static void showResetActionbar(Minecraft client) {
@@ -340,7 +340,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
         if (client == null || client.player == null) {
             return;
         }
-        client.gui.setOverlayMessage(msg, false);
+        MinecraftUiBridge.setOverlayMessage(client, msg);
     }
 
     private static void showChat(Minecraft client, Component msg) {
@@ -391,7 +391,7 @@ public final class PerformanceOverlayClient implements ClientModInitializer {
             msg = msg.append(Component.literal("(" + elapsedSec + "s)").withStyle(ChatFormatting.GRAY));
         }
 
-        client.gui.setOverlayMessage(msg, false);
+        MinecraftUiBridge.setOverlayMessage(client, msg);
     }
 
     private static void showBenchmarkStarted(Minecraft client, int durationSec) {

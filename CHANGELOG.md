@@ -1,6 +1,7 @@
 # Changelog
 
 ## x.x.x [WIP]
+- Added a separate Java 25 build verified on Minecraft 26.2 with the complete packaged-JAR client suite.
 - Added a separate Java 25 build verified on Minecraft 26.1, 26.1.1, and 26.1.2 with the complete automated client suite.
 - Added automated startup, overlay rendering, metric visibility, configuration persistence, guarded F7-F10 behavior, benchmark export, and world-lifecycle tests for Minecraft 1.21.9, 1.21.10, and 1.21.11.
 

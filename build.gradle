@@ -192,8 +192,8 @@ tasks.named('test12111') {
 
 tasks.register('testSupportedVersions') {
     group = 'verification'
-    description = 'Run compatibility tests for every Minecraft version declared by both release JARs.'
-    dependsOn tasks.named('test12109'), tasks.named('test12110'), tasks.named('test12111'), tasks.named('test261SupportedVersions')
+    description = 'Run compatibility tests for every Minecraft version declared by all release JARs.'
+    dependsOn tasks.named('test12109'), tasks.named('test12110'), tasks.named('test12111'), tasks.named('test261SupportedVersions'), tasks.named('test262SupportedVersion')
 }
 
 def modernWrapper = System.getProperty('os.name').toLowerCase().contains('windows')
@@ -209,4 +209,19 @@ tasks.register('test261SupportedVersions', Exec) {
 			'testSupportedVersions'
 	]
 	mustRunAfter tasks.named('test12111')
+}
+
+def minecraft262Wrapper = System.getProperty('os.name').toLowerCase().contains('windows')
+		? ['cmd', '/d', '/c', file('versions/26.2/gradlew.bat').absolutePath]
+		: ['bash', file('versions/26.2/gradlew').absolutePath]
+
+tasks.register('test262SupportedVersion', Exec) {
+	group = 'verification'
+	description = 'Build and test the separate Minecraft 26.2 JAR.'
+	workingDir project.projectDir
+	commandLine minecraft262Wrapper + [
+			'-p', file('versions/26.2').absolutePath,
+			'testSupportedVersions'
+	]
+	mustRunAfter tasks.named('test261SupportedVersions')
 }

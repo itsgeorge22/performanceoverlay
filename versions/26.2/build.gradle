@@ -1,0 +1,180 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+group = project.maven_group
+version = project.mod_version
+
+def repositoryRoot = file('../..')
+def jarBase = "performanceoverlay-${project.mod_version}+mc26.2-fabric"
+
+base {
+	archivesName = jarBase
+}
+
+repositories {
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+	}
+	maven {
+		name = 'Architectury'
+		url = 'https://maven.architectury.dev/'
+	}
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		'performanceoverlay' {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = 'performanceoverlay-26-2-client-tests'
+		enableGameTests = false
+		enableClientGameTests = true
+		eula = true
+	}
+}
+
+sourceSets {
+	client {
+		java.srcDirs = [new File(repositoryRoot, 'src/client/java'), file('src/client/java')]
+	}
+	test {
+		java.srcDirs = [new File(repositoryRoot, 'src/test/java')]
+	}
+	gametest {
+		java.srcDirs = [new File(repositoryRoot, 'src/gametest/java')]
+		resources.srcDirs = [file('src/gametest/resources')]
+	}
+}
+
+tasks.named('compileClientJava', JavaCompile).configure {
+	setSource(files(
+			fileTree(new File(repositoryRoot, 'src/client/java')) {
+				exclude 'com/itsgeorge/performanceoverlay/client/OverlayRenderer.java'
+				exclude 'com/itsgeorge/performanceoverlay/MinecraftUiBridge.java'
+			},
+			fileTree('src/client/java')
+	))
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	clientCompileOnly "maven.modrinth:modmenu:${project.modmenu_version}"
+	clientRuntimeOnly "maven.modrinth:modmenu:${project.modmenu_version}"
+
+	clientCompileOnly "maven.modrinth:cloth-config:${project.cloth_config_version}"
+	clientRuntimeOnly "maven.modrinth:cloth-config:${project.cloth_config_version}"
+
+	clientRuntimeOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
+	clientRuntimeOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
+
+	testImplementation sourceSets.client.output
+	testImplementation platform('org.junit:junit-bom:5.13.4')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test).configure {
+	useJUnitPlatform()
+}
+
+processResources {
+	inputs.property 'version', project.version
+
+	from(new File(repositoryRoot, 'src/main/resources')) {
+		exclude 'fabric.mod.json'
+	}
+
+	filesMatching('fabric.mod.json') {
+		expand 'version': inputs.properties.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = 25
+}
+
+java {
+	withSourcesJar()
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.matching { it.name == 'sourcesJar' }.configureEach {
+	archiveFileName = "${jarBase}-sources.jar"
+	def sharedRenderer = new File(repositoryRoot,
+			'src/client/java/com/itsgeorge/performanceoverlay/client/OverlayRenderer.java').canonicalFile
+	def sharedUiBridge = new File(repositoryRoot,
+			'src/client/java/com/itsgeorge/performanceoverlay/MinecraftUiBridge.java').canonicalFile
+	eachFile { details ->
+		if (details.path == 'com/itsgeorge/performanceoverlay/client/OverlayRenderer.java'
+				&& details.file.canonicalFile == sharedRenderer) {
+			details.exclude()
+		}
+		if (details.path == 'com/itsgeorge/performanceoverlay/MinecraftUiBridge.java'
+				&& details.file.canonicalFile == sharedUiBridge) {
+			details.exclude()
+		}
+	}
+}
+
+tasks.named('jar').configure {
+	archiveFileName = "${jarBase}.jar"
+
+	from(new File(repositoryRoot, 'LICENSE')) {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}
+
+publishing {
+	publications {
+		create('mavenJava', MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
+}
+
+def compatibilityWrapper = System.getProperty('os.name').toLowerCase().contains('windows')
+		? ['cmd', '/d', '/c', file('gradlew.bat').absolutePath]
+		: ['bash', file('gradlew').absolutePath]
+
+tasks.register('test262', Exec) {
+	group = 'verification'
+	description = 'Build the 26.2 release JAR and run the complete client suite on Minecraft 26.2.'
+	dependsOn tasks.named('jar')
+	workingDir project.projectDir
+	commandLine compatibilityWrapper + [
+			'-p', file('compatibility').absolutePath,
+			'runClientGameTest',
+			"-Ptarget_minecraft=${project.minecraft_version}",
+			"-Ptarget_fabric_api=${project.fabric_api_version}",
+			"-Ptarget_modmenu=${project.modmenu_version}",
+			"-Ptarget_cloth_config=${project.cloth_config_version}",
+			"-Ptarget_placeholder_api=${project.placeholder_api_version}",
+			"-Pperformance_overlay_jar=${tasks.named('jar').get().archiveFile.get().asFile.absolutePath}"
+	]
+}
+
+tasks.register('testSupportedVersions') {
+	group = 'verification'
+	description = 'Run unit tests and the packaged release JAR client suite on Minecraft 26.2.'
+	dependsOn tasks.named('test'), tasks.named('test262')
+}

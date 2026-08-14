@@ -1,0 +1,68 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.17.19'
+}
+
+def targetMinecraft = providers.gradleProperty('target_minecraft').get()
+def targetFabricApi = providers.gradleProperty('target_fabric_api').get()
+def targetModMenu = providers.gradleProperty('target_modmenu').get()
+def targetClothConfig = providers.gradleProperty('target_cloth_config').get()
+def targetPlaceholderApi = providers.gradleProperty('target_placeholder_api').get()
+def performanceOverlayJar = providers.gradleProperty('performance_overlay_jar').get()
+def repositoryRoot = file('../../..')
+
+version = '1.0.0'
+group = 'com.itsgeorge.performanceoverlay.compatibility'
+
+repositories {
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+    }
+    maven {
+        name = 'Architectury'
+        url = 'https://maven.architectury.dev/'
+    }
+}
+
+loom {
+    splitEnvironmentSourceSets()
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+		modId = 'performanceoverlay-26-2-compatibility-tests'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+    }
+}
+
+sourceSets {
+    gametest {
+        java.srcDirs = [new File(repositoryRoot, 'src/gametest/java')]
+        resources.srcDirs = [file('src/gametest/resources')]
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${targetMinecraft}"
+    implementation 'net.fabricmc:fabric-loader:0.19.3'
+    implementation "net.fabricmc.fabric-api:fabric-api:${targetFabricApi}"
+
+    clientImplementation files(performanceOverlayJar)
+    clientImplementation "maven.modrinth:modmenu:${targetModMenu}"
+    clientImplementation "maven.modrinth:cloth-config:${targetClothConfig}"
+    clientRuntimeOnly "maven.modrinth:placeholder-api:${targetPlaceholderApi}"
+    clientRuntimeOnly 'me.shedaniel.cloth:basic-math:0.6.1'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}

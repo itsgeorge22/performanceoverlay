@@ -24,12 +24,13 @@
 
 - Confirm the release version and whether it is Alpha, Beta, or Release.
 - Review the accumulated entries under the current `[WIP]` version heading and remove `[WIP]` when they are final.
-- Bump `mod_version` in both `gradle.properties` and `versions/26.1.2/gradle.properties`.
-- Review both JAR names and their Minecraft compatibility ranges.
+- Bump `mod_version` in `gradle.properties`, `versions/26.1.2/gradle.properties`, and `versions/26.2/gradle.properties`.
+- Review all three JAR names and their Minecraft compatibility ranges.
 - Update relevant README, architecture, metrics, testing, release, and issue-template documentation.
 - Build the Java 21 JAR with `./gradlew clean build` or `.\gradlew.bat clean build` on Windows.
 - Build the Java 25 JAR with `bash ./versions/26.1.2/gradlew -p versions/26.1.2 clean build` or `.\versions\26.1.2\gradlew.bat -p versions\26.1.2 clean build` on Windows.
-- Run the root `testSupportedVersions` task. It must pass on 1.21.9–1.21.11 and 26.1–26.1.2.
+- Build the separate 26.2 JAR with `bash ./versions/26.2/gradlew -p versions/26.2 clean build` or `.\versions\26.2\gradlew.bat -p versions\26.2 clean build` on Windows.
+- Run the root `testSupportedVersions` task. It must pass on 1.21.9–1.21.11, 26.1–26.1.2, and 26.2.
 - Verify startup, overlay toggle, layouts, settings persistence, benchmark lifecycle, and CSV output.
 - Review the complete Git diff and confirm the working tree contains only intended changes.
 
@@ -42,7 +43,7 @@ Only proceed after explicit release approval.
 3. Create a tag using `vX.X.X`, for example `v1.0.1`.
 4. Push the tag to trigger the GitHub release workflow.
 5. Monitor the workflow until it succeeds.
-6. Verify that the GitHub Release exists and contains both correct non-sources JARs.
+6. Verify that the GitHub Release exists and contains all three correct non-sources JARs.
 7. Include a full changelog link in the release description:
 
    ```markdown
@@ -53,6 +54,6 @@ Only proceed after explicit release approval.
 
 - Upload each non-sources JAR from the GitHub Release as a separate Modrinth version entry with the same mod version number.
 - Use the same version number and select the appropriate Alpha, Beta, or Release channel.
-- Select 1.21.9–1.21.11 for the Java 21 JAR and 26.1–26.1.2 for the Java 25 JAR.
+- Select 1.21.9–1.21.11 for the Java 21 JAR, 26.1–26.1.2 for the first Java 25 JAR, and only 26.2 for the separate 26.2 JAR.
 - Verify the Fabric loader and required dependencies.
 - Add concise release notes matching `CHANGELOG.md`.

@@ -33,6 +33,8 @@ The separate `compatibility` Gradle project compiles those test classes for Mine
 
 `versions/26.1.2` is a separate Java 25, unobfuscated Fabric build line. It reuses the shared runtime and test sources, replaces only the version-sensitive `OverlayRenderer`, and produces one JAR declared for Minecraft 26.1–26.1.2. Its nested compatibility project loads that exact built JAR and runs the complete client suite separately on all three declared versions.
 
+`versions/26.2` is a second Java 25, unobfuscated build line. It produces a separate Minecraft 26.2 JAR, reuses the shared behavior and tests, and supplies adapters for the 26.2 HUD changes. Its compatibility project runs the complete client suite against the packaged JAR rather than source-set output.
+
 ## Runtime initialization
 
 `PerformanceOverlayClient.onInitializeClient()`:
@@ -184,7 +186,9 @@ The CSV writes `gc_time_delta_ms` only on frames with a fresh GC poll. Intermedi
 
 ## Rendering
 
-The Java 21 and Java 25 build lines use separate `OverlayRenderer` source files because Minecraft 26.1 replaced `GuiGraphics` HUD drawing with `GuiGraphicsExtractor`. Both implementations preserve the same measurement, anchoring, scaling, caching, and text-drawing behavior.
+The Java 21 and Java 25 build lines use separate `OverlayRenderer` source files because Minecraft 26.1 replaced `GuiGraphics` HUD drawing with `GuiGraphicsExtractor`. The 26.1 and 26.2 implementations currently use the same extractor API. All implementations preserve the same measurement, anchoring, scaling, caching, and text-drawing behavior.
+
+Minecraft 26.2 moved overlay-message handling from `Gui` to `Gui.hud`. A small version-specific `MinecraftUiBridge` keeps that API difference outside the shared runtime flow and adds no reflective work to the benchmark path.
 
 `OverlayRenderer.render()` / `OverlayRenderer.extractRenderState()`:
 
@@ -252,16 +256,17 @@ A dedicated daemon thread owns benchmark CSV row formatting and file writes. The
 
 ## Build/runtime metadata
 
-The repository produces two release JARs from shared behavior code:
+The repository produces three release JARs from shared behavior code:
 
 - Java 21 build target: Minecraft 1.21.11, declared and verified for 1.21.9–1.21.11.
 - Java 25 unobfuscated build target: Minecraft 26.1.2, declared and verified for 26.1–26.1.2.
-- mod version: 1.0.2 in both build-property files
+- Java 25 unobfuscated build target: Minecraft 26.2, declared and verified for 26.2 only.
+- mod version: 1.0.2 in all three build-property files
 - environment: `client`
 - Cloth Config is required
 - Mod Menu is recommended
 
-Minecraft 1.21.8 remains unsupported because its key-binding API is incompatible with the Java 21 JAR. The two build lines share initialization through small compatibility bridges for renamed Fabric key-mapping and Minecraft player-message APIs; these run only during initialization or user notifications, not during frame measurement.
+Minecraft 1.21.8 remains unsupported because its key-binding API is incompatible with the Java 21 JAR. The build lines share initialization through small compatibility bridges for renamed Fabric key-mapping, player-message, and HUD APIs; these run only during initialization or user notifications, not during frame measurement.
 
 ## Current architectural constraints / known risks
 

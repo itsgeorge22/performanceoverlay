@@ -39,14 +39,17 @@ jobs:
       - name: Build Minecraft 26.1–26.1.2 JAR
         run: bash ./versions/26.1.2/gradlew -p versions/26.1.2 clean build
 
+      - name: Build Minecraft 26.2 JAR
+        run: bash ./versions/26.2/gradlew -p versions/26.2 clean build
+
       - name: Collect release jars
         shell: bash
         run: |
           set -e
           mkdir -p release-artifacts
-          find build/libs versions/26.1.2/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' -exec cp {} release-artifacts/ \;
-          if [ "$(find release-artifacts -maxdepth 1 -type f -name '*.jar' | wc -l)" -ne 2 ]; then
-            echo "Expected exactly two release jars"
+          find build/libs versions/26.1.2/build/libs versions/26.2/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' -exec cp {} release-artifacts/ \;
+          if [ "$(find release-artifacts -maxdepth 1 -type f -name '*.jar' | wc -l)" -ne 3 ]; then
+            echo "Expected exactly three release jars"
             find release-artifacts -maxdepth 1 -type f -print
             exit 1
           fi
