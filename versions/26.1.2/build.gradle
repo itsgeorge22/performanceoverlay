@@ -7,7 +7,7 @@ group = project.maven_group
 version = project.mod_version
 
 def repositoryRoot = file('../..')
-def jarBase = "performanceoverlay-${project.mod_version}+mc26.1-26.1.2-fabric"
+def jarBase = "performanceoverlay-${project.mod_version}+mc26.1.x-fabric"
 
 base {
 	archivesName = jarBase
